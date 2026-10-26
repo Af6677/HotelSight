@@ -1,0 +1,93 @@
+{
+  "policy": "deduplicated",
+  "family": "general20",
+  "slug": "catboost",
+  "model": "CatBoost",
+  "configuration": 3,
+  "manual_parameters": {
+    "iterations": 500,
+    "learning_rate": 0.1,
+    "depth": 8,
+    "l2_leaf_reg": 6.0
+  },
+  "effective_parameters": {
+    "iterations": 500,
+    "learning_rate": 0.1,
+    "depth": 8,
+    "l2_leaf_reg": 6.0,
+    "loss_function": "Logloss",
+    "thread_count": 4,
+    "random_seed": 42,
+    "verbose": false,
+    "auto_class_weights": "Balanced",
+    "allow_writing_files": false
+  },
+  "training_positive_weight_ratio": 2.6333829217494795,
+  "started_utc": "2026-10-22T03:41:24.340100+00:00",
+  "finished_utc": "2026-10-22T03:41:29.665281+00:00",
+  "seconds": 5.325190368999756,
+  "train": {
+    "f1": 0.6707027323403089,
+    "precision": 0.5443319612860162,
+    "recall": 0.8734900327283547,
+    "accuracy": 0.7639332448942826,
+    "roc_auc": 0.8877388229509596,
+    "confusion_matrix": [
+      [
+        31966,
+        12288
+      ],
+      [
+        2126,
+        14679
+      ]
+    ],
+    "rows": 61059,
+    "threshold": 0.5
+  },
+  "validation": {
+    "f1": 0.6227417640807651,
+    "precision": 0.5043897400585299,
+    "recall": 0.8136628714246043,
+    "accuracy": 0.7286762457963926,
+    "roc_auc": 0.833055105581736,
+    "confusion_matrix": [
+      [
+        6604,
+        2879
+      ],
+      [
+        671,
+        2930
+      ]
+    ],
+    "rows": 13084,
+    "threshold": 0.5
+  },
+  "one_copy_validation": {
+    "f1": 0.6227417640807651,
+    "precision": 0.5043897400585299,
+    "recall": 0.8136628714246043,
+    "accuracy": 0.7286762457963926,
+    "roc_auc": 0.833055105581736,
+    "confusion_matrix": [
+      [
+        6604,
+        2879
+      ],
+      [
+        671,
+        2930
+      ]
+    ],
+    "rows": 13084,
+    "threshold": 0.5
+  },
+  "threshold": 0.5,
+  "warnings": [],
+  "iterations": [],
+  "model_path": "models/deduplicated/general20/catboost/catboost.cbm",
+  "preprocessor_path": "prepared/deduplicated/general20/preprocessor.joblib",
+  "model_sha256": "7ee5b421322b10979e0959ef8ac135b04eac1276cac1373768209540ff620f89",
+  "preprocessor_sha256": "dad8c0ea03d44847638ba97b6189bf30646512a0390f9ef6b94d4e3d7a49c5f0"
+}

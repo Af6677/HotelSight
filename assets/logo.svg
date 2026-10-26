@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="236" height="48" viewBox="0 0 236 48">
+  <rect x="2" y="4" width="40" height="40" rx="11" fill="#c5a059"/>
+  <path d="M12 37V15.5c0-.8.7-1.5 1.5-1.5h17c.8 0 1.5.7 1.5 1.5V37z" fill="#0b1d33"/>
+  <g fill="#c5a059">
+    <rect x="15" y="17.5" width="3.2" height="3.2" rx=".6"/><rect x="20.4" y="17.5" width="3.2" height="3.2" rx=".6"/>
+    <rect x="25.8" y="17.5" width="3.2" height="3.2" rx=".6"/>
+    <rect x="15" y="22.6" width="3.2" height="3.2" rx=".6"/><rect x="25.8" y="22.6" width="3.2" height="3.2" rx=".6"/>
+    <rect x="15" y="27.7" width="3.2" height="3.2" rx=".6"/><rect x="20.4" y="27.7" width="3.2" height="3.2" rx=".6"/>
+    <rect x="25.8" y="27.7" width="3.2" height="3.2" rx=".6"/>
+    <rect x="20" y="32" width="4" height="5" rx="1"/>
+  </g>
+  <rect x="20.4" y="22.6" width="3.2" height="3.2" rx=".6" fill="#fff4d6"/>
+  <text x="54" y="31.5" font-family="Georgia, 'Times New Roman', serif" font-size="23" font-weight="700" fill="#ffffff">Hotel<tspan fill="#d9b86c">Sight</tspan></text>
+</svg>

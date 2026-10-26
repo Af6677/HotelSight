@@ -1,0 +1,98 @@
+[
+  {
+    "policy": "deduplicated",
+    "family": "general20",
+    "model": "Logistic Regression",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "deduplicated",
+    "family": "general20",
+    "model": "Random Forest",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "deduplicated",
+    "family": "general20",
+    "model": "XGBoost",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "deduplicated",
+    "family": "general20",
+    "model": "CatBoost",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "deduplicated",
+    "family": "historical24",
+    "model": "Logistic Regression",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "deduplicated",
+    "family": "historical24",
+    "model": "Random Forest",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "deduplicated",
+    "family": "historical24",
+    "model": "XGBoost",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "deduplicated",
+    "family": "historical24",
+    "model": "CatBoost",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "retained",
+    "family": "general20",
+    "model": "Logistic Regression",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "retained",
+    "family": "general20",
+    "model": "Random Forest",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "retained",
+    "family": "general20",
+    "model": "XGBoost",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "retained",
+    "family": "general20",
+    "model": "CatBoost",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "retained",
+    "family": "historical24",
+    "model": "Logistic Regression",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "retained",
+    "family": "historical24",
+    "model": "Random Forest",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "retained",
+    "family": "historical24",
+    "model": "XGBoost",
+    "saved_predictions_reproduced": true
+  },
+  {
+    "policy": "retained",
+    "family": "historical24",
+    "model": "CatBoost",
+    "saved_predictions_reproduced": true
+  }
+]

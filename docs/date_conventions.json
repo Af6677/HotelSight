@@ -1,0 +1,76 @@
+{
+  "week_number_match_rate": {
+    "iso_8601": 0.4634894044727364,
+    "strftime_U_sunday_first": 0.3407906859871011,
+    "strftime_W_monday_first": 0.2963062233017841,
+    "tsql_datepart_week_sunday_first (USED)": 1.0
+  },
+  "iso_mismatches": 64054,
+  "iso_mismatch_examples": [
+    {
+      "arrival": "2015-07-05",
+      "stored_week": 28
+    },
+    {
+      "arrival": "2015-07-12",
+      "stored_week": 29
+    },
+    {
+      "arrival": "2015-07-19",
+      "stored_week": 30
+    },
+    {
+      "arrival": "2015-07-26",
+      "stored_week": 31
+    },
+    {
+      "arrival": "2015-08-02",
+      "stored_week": 32
+    },
+    {
+      "arrival": "2015-08-09",
+      "stored_week": 33
+    },
+    {
+      "arrival": "2015-08-16",
+      "stored_week": 34
+    },
+    {
+      "arrival": "2015-08-23",
+      "stored_week": 35
+    },
+    {
+      "arrival": "2015-08-30",
+      "stored_week": 36
+    },
+    {
+      "arrival": "2015-09-06",
+      "stored_week": 37
+    }
+  ],
+  "iso_year_differs_from_calendar_year_rows": 417,
+  "weekend_rule_nights_starting_fri_sat_match_rate": 0.34280928050925535,
+  "weekend_rule_nights_starting_sat_sun_match_rate": 0.4997738504062317,
+  "weekend_rule_nights_starting_sun_mon (USED)_match_rate": 1.0,
+  "checked_out_status_date_equals_arrival_plus_nights_rate": 0.9996407950403108,
+  "range_lead_time": [
+    0,
+    737
+  ],
+  "range_total_nights": [
+    0,
+    69
+  ],
+  "range_weekend_nights": [
+    0,
+    19
+  ],
+  "range_week_nights": [
+    0,
+    50
+  ],
+  "arrival_date_range": [
+    "2015-07-01",
+    "2017-08-31"
+  ]
+}

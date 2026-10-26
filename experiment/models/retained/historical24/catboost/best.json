@@ -1,0 +1,93 @@
+{
+  "policy": "retained",
+  "family": "historical24",
+  "slug": "catboost",
+  "model": "CatBoost",
+  "configuration": 2,
+  "manual_parameters": {
+    "iterations": 500,
+    "learning_rate": 0.1,
+    "depth": 8,
+    "l2_leaf_reg": 3.0
+  },
+  "effective_parameters": {
+    "iterations": 500,
+    "learning_rate": 0.1,
+    "depth": 8,
+    "l2_leaf_reg": 3.0,
+    "loss_function": "Logloss",
+    "thread_count": 4,
+    "random_seed": 42,
+    "verbose": false,
+    "auto_class_weights": "Balanced",
+    "allow_writing_files": false
+  },
+  "training_positive_weight_ratio": 1.6971685306096063,
+  "started_utc": "2026-10-22T03:43:52.794849+00:00",
+  "finished_utc": "2026-10-22T03:43:59.516886+00:00",
+  "seconds": 6.722046365999631,
+  "train": {
+    "f1": 0.8591520809023726,
+    "precision": 0.8282388937216906,
+    "recall": 0.8924623440429246,
+    "accuracy": 0.8915093774342381,
+    "roc_auc": 0.9643236610129808,
+    "confusion_matrix": [
+      [
+        46781,
+        5726
+      ],
+      [
+        3327,
+        27611
+      ]
+    ],
+    "rows": 83445,
+    "threshold": 0.5
+  },
+  "validation": {
+    "f1": 0.800289960130482,
+    "precision": 0.7704117236566643,
+    "recall": 0.832579185520362,
+    "accuracy": 0.8459258430736536,
+    "roc_auc": 0.9288170731396692,
+    "confusion_matrix": [
+      [
+        9606,
+        1645
+      ],
+      [
+        1110,
+        5520
+      ]
+    ],
+    "rows": 17881,
+    "threshold": 0.5
+  },
+  "one_copy_validation": {
+    "f1": 0.6955948298601952,
+    "precision": 0.6623963828183873,
+    "recall": 0.7322965842821438,
+    "accuracy": 0.823601345154387,
+    "roc_auc": 0.8904781976885925,
+    "confusion_matrix": [
+      [
+        8139,
+        1344
+      ],
+      [
+        964,
+        2637
+      ]
+    ],
+    "rows": 13084,
+    "threshold": 0.5
+  },
+  "threshold": 0.5,
+  "warnings": [],
+  "iterations": [],
+  "model_path": "models/retained/historical24/catboost/catboost.cbm",
+  "preprocessor_path": "prepared/retained/historical24/preprocessor.joblib",
+  "model_sha256": "290664c715e4221390640b8ffd8ce550195f39576ba91632eb1e559273d08f39",
+  "preprocessor_sha256": "3b8f9cb581d91ec89dc842d9203260ffae26aa44f97dca3a5ec0563020cf22da"
+}

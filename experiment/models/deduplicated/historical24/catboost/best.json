@@ -1,0 +1,93 @@
+{
+  "policy": "deduplicated",
+  "family": "historical24",
+  "slug": "catboost",
+  "model": "CatBoost",
+  "configuration": 2,
+  "manual_parameters": {
+    "iterations": 500,
+    "learning_rate": 0.1,
+    "depth": 8,
+    "l2_leaf_reg": 3.0
+  },
+  "effective_parameters": {
+    "iterations": 500,
+    "learning_rate": 0.1,
+    "depth": 8,
+    "l2_leaf_reg": 3.0,
+    "loss_function": "Logloss",
+    "thread_count": 4,
+    "random_seed": 42,
+    "verbose": false,
+    "auto_class_weights": "Balanced",
+    "allow_writing_files": false
+  },
+  "training_positive_weight_ratio": 2.6333829217494795,
+  "started_utc": "2026-10-22T03:43:11.719111+00:00",
+  "finished_utc": "2026-10-22T03:43:18.736406+00:00",
+  "seconds": 7.017303096000433,
+  "train": {
+    "f1": 0.7604778295201458,
+    "precision": 0.6616461884000528,
+    "recall": 0.8940196370127939,
+    "accuracy": 0.8450023747522888,
+    "roc_auc": 0.9367338120759086,
+    "confusion_matrix": [
+      [
+        36571,
+        7683
+      ],
+      [
+        1781,
+        15024
+      ]
+    ],
+    "rows": 61059,
+    "threshold": 0.5
+  },
+  "validation": {
+    "f1": 0.6939404719554133,
+    "precision": 0.605546357615894,
+    "recall": 0.8125520688697584,
+    "accuracy": 0.8027361663099969,
+    "roc_auc": 0.891452038745257,
+    "confusion_matrix": [
+      [
+        7577,
+        1906
+      ],
+      [
+        675,
+        2926
+      ]
+    ],
+    "rows": 13084,
+    "threshold": 0.5
+  },
+  "one_copy_validation": {
+    "f1": 0.6939404719554133,
+    "precision": 0.605546357615894,
+    "recall": 0.8125520688697584,
+    "accuracy": 0.8027361663099969,
+    "roc_auc": 0.891452038745257,
+    "confusion_matrix": [
+      [
+        7577,
+        1906
+      ],
+      [
+        675,
+        2926
+      ]
+    ],
+    "rows": 13084,
+    "threshold": 0.5
+  },
+  "threshold": 0.5,
+  "warnings": [],
+  "iterations": [],
+  "model_path": "models/deduplicated/historical24/catboost/catboost.cbm",
+  "preprocessor_path": "prepared/deduplicated/historical24/preprocessor.joblib",
+  "model_sha256": "a237da87c68bc188155fbe7486288a1f0382115f1391b153f3ba99e38fda3f06",
+  "preprocessor_sha256": "644ca7795bd1266c0d9d325a07332b352e9f85eb76ca29d015b08e00b81c026f"
+}

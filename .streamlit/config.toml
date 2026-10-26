@@ -1,0 +1,27 @@
+[theme]
+base = "light"
+primaryColor = "#173a63"
+backgroundColor = "#f6f4ef"
+secondaryBackgroundColor = "#efebe3"
+textColor = "#1c2533"
+borderColor = "#e3ddd1"
+baseRadius = "0.6rem"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap, 'Segoe UI', sans-serif"
+headingFont = "'Playfair Display':https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap, Georgia, serif"
+showWidgetBorder = true
+
+[theme.sidebar]
+backgroundColor = "#0b1d33"
+secondaryBackgroundColor = "#14304f"
+textColor = "#e9edf3"
+borderColor = "#1f3a5c"
+primaryColor = "#c5a059"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"

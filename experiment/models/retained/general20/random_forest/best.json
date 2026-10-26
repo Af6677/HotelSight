@@ -1,0 +1,103 @@
+{
+  "policy": "retained",
+  "family": "general20",
+  "slug": "random_forest",
+  "model": "Random Forest",
+  "configuration": 1,
+  "manual_parameters": {
+    "n_estimators": 250,
+    "max_depth": 20,
+    "min_samples_split": 5,
+    "min_samples_leaf": 2,
+    "max_features": "log2"
+  },
+  "effective_parameters": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "class_weight": "balanced",
+    "criterion": "gini",
+    "max_depth": 20,
+    "max_features": "log2",
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 2,
+    "min_samples_split": 5,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 250,
+    "n_jobs": 1,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "training_positive_weight_ratio": 1.6971685306096063,
+  "started_utc": "2026-10-22T03:40:01.034309+00:00",
+  "finished_utc": "2026-10-22T03:40:08.416229+00:00",
+  "seconds": 7.381930077999641,
+  "train": {
+    "f1": 0.7842070915814662,
+    "precision": 0.7550867743865949,
+    "recall": 0.815663585234986,
+    "accuracy": 0.8335670201929415,
+    "roc_auc": 0.919079907612908,
+    "confusion_matrix": [
+      [
+        44322,
+        8185
+      ],
+      [
+        5703,
+        25235
+      ]
+    ],
+    "rows": 83445,
+    "threshold": 0.5
+  },
+  "validation": {
+    "f1": 0.7224094972885827,
+    "precision": 0.7025370581527937,
+    "recall": 0.7434389140271493,
+    "accuracy": 0.7881550248867513,
+    "roc_auc": 0.8785786160385542,
+    "confusion_matrix": [
+      [
+        9164,
+        2087
+      ],
+      [
+        1701,
+        4929
+      ]
+    ],
+    "rows": 17881,
+    "threshold": 0.5
+  },
+  "one_copy_validation": {
+    "f1": 0.5781208410966197,
+    "precision": 0.5550728341426016,
+    "recall": 0.6031657872813108,
+    "accuracy": 0.7577193518801589,
+    "roc_auc": 0.8137379703688177,
+    "confusion_matrix": [
+      [
+        7742,
+        1741
+      ],
+      [
+        1429,
+        2172
+      ]
+    ],
+    "rows": 13084,
+    "threshold": 0.5
+  },
+  "threshold": 0.5,
+  "warnings": [],
+  "iterations": [],
+  "model_path": "models/retained/general20/random_forest/random_forest.joblib",
+  "preprocessor_path": "prepared/retained/general20/preprocessor.joblib",
+  "model_sha256": "94afd3d7a72cbffce2c795810bbbe30e534fe8498d35336ce9b07f455b95fead",
+  "preprocessor_sha256": "6bdc1b31a727efdc7abe739b31b95b372f647be0ea4a8700e38c4299c74d35b8"
+}

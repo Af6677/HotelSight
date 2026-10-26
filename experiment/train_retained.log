@@ -1,0 +1,48 @@
+TRAIN retained general20 logistic_regression 1
+DONE retained general20 logistic_regression 1 F1 0.68947 seconds 3.2
+TRAIN retained general20 logistic_regression 2
+DONE retained general20 logistic_regression 2 F1 0.692859 seconds 6.3
+TRAIN retained general20 logistic_regression 3
+DONE retained general20 logistic_regression 3 F1 0.69098 seconds 7.5
+TRAIN retained general20 random_forest 1
+DONE retained general20 random_forest 1 F1 0.722409 seconds 7.4
+TRAIN retained general20 random_forest 2
+DONE retained general20 random_forest 2 F1 0.713593 seconds 15.1
+TRAIN retained general20 random_forest 3
+DONE retained general20 random_forest 3 F1 0.7008 seconds 51.1
+TRAIN retained general20 xgboost 1
+DONE retained general20 xgboost 1 F1 0.729658 seconds 3.6
+TRAIN retained general20 xgboost 2
+DONE retained general20 xgboost 2 F1 0.730499 seconds 6.5
+TRAIN retained general20 xgboost 3
+DONE retained general20 xgboost 3 F1 0.730206 seconds 9.6
+TRAIN retained general20 catboost 1
+DONE retained general20 catboost 1 F1 0.731065 seconds 5.0
+TRAIN retained general20 catboost 2
+DONE retained general20 catboost 2 F1 0.737943 seconds 6.0
+TRAIN retained general20 catboost 3
+DONE retained general20 catboost 3 F1 0.736421 seconds 6.7
+TRAIN retained historical24 logistic_regression 1
+DONE retained historical24 logistic_regression 1 F1 0.741931 seconds 1.6
+TRAIN retained historical24 logistic_regression 2
+DONE retained historical24 logistic_regression 2 F1 0.741834 seconds 2.7
+TRAIN retained historical24 logistic_regression 3
+DONE retained historical24 logistic_regression 3 F1 0.741754 seconds 3.8
+TRAIN retained historical24 random_forest 1
+DONE retained historical24 random_forest 1 F1 0.766797 seconds 7.1
+TRAIN retained historical24 random_forest 2
+DONE retained historical24 random_forest 2 F1 0.790516 seconds 17.0
+TRAIN retained historical24 random_forest 3
+DONE retained historical24 random_forest 3 F1 0.789238 seconds 57.6
+TRAIN retained historical24 xgboost 1
+DONE retained historical24 xgboost 1 F1 0.795942 seconds 3.6
+TRAIN retained historical24 xgboost 2
+DONE retained historical24 xgboost 2 F1 0.802883 seconds 7.4
+TRAIN retained historical24 xgboost 3
+DONE retained historical24 xgboost 3 F1 0.800948 seconds 7.5
+TRAIN retained historical24 catboost 1
+DONE retained historical24 catboost 1 F1 0.793808 seconds 3.8
+TRAIN retained historical24 catboost 2
+DONE retained historical24 catboost 2 F1 0.80029 seconds 6.7
+TRAIN retained historical24 catboost 3
+DONE retained historical24 catboost 3 F1 0.79756 seconds 7.3

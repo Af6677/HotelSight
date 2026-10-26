@@ -1,0 +1,14 @@
+{
+  "bootstrap_iterations": 10000,
+  "bootstrap_seed": 20261022,
+  "resampling_unit": "Shared general20 raw predictor-profile group",
+  "pairing": "Identical sampled groups for all frozen arm winners in each replicate",
+  "populations": ["retained test records", "one copy of each complete record in the same test set"],
+  "comparisons": [
+    "retained vs deduplicated training policy with general20",
+    "retained vs deduplicated training policy with historical24",
+    "historical24 vs general20 under deduplicated training",
+    "historical24 vs general20 under retained training"
+  ],
+  "scope": "Exploratory conditional intervals for these fixed fitted winners; no retraining, no independent external validation, no multiplicity correction. The prediction timestamps remain unverified. No model or threshold selection from these comparisons."
+}

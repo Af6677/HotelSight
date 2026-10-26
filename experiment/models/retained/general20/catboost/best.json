@@ -1,0 +1,93 @@
+{
+  "policy": "retained",
+  "family": "general20",
+  "slug": "catboost",
+  "model": "CatBoost",
+  "configuration": 2,
+  "manual_parameters": {
+    "iterations": 500,
+    "learning_rate": 0.1,
+    "depth": 8,
+    "l2_leaf_reg": 3.0
+  },
+  "effective_parameters": {
+    "iterations": 500,
+    "learning_rate": 0.1,
+    "depth": 8,
+    "l2_leaf_reg": 3.0,
+    "loss_function": "Logloss",
+    "thread_count": 4,
+    "random_seed": 42,
+    "verbose": false,
+    "auto_class_weights": "Balanced",
+    "allow_writing_files": false
+  },
+  "training_positive_weight_ratio": 1.6971685306096063,
+  "started_utc": "2026-10-22T03:41:40.487064+00:00",
+  "finished_utc": "2026-10-22T03:41:46.468198+00:00",
+  "seconds": 5.981141534999551,
+  "train": {
+    "f1": 0.8114241842610365,
+    "precision": 0.7728668792230965,
+    "recall": 0.8540306419290193,
+    "accuracy": 0.8528252142129547,
+    "roc_auc": 0.9393147775464207,
+    "confusion_matrix": [
+      [
+        44742,
+        7765
+      ],
+      [
+        4516,
+        26422
+      ]
+    ],
+    "rows": 83445,
+    "threshold": 0.5
+  },
+  "validation": {
+    "f1": 0.7379433894661411,
+    "precision": 0.7029351535836178,
+    "recall": 0.7766214177978884,
+    "accuracy": 0.7954812370672781,
+    "roc_auc": 0.8900203809602713,
+    "confusion_matrix": [
+      [
+        9075,
+        2176
+      ],
+      [
+        1481,
+        5149
+      ]
+    ],
+    "rows": 17881,
+    "threshold": 0.5
+  },
+  "one_copy_validation": {
+    "f1": 0.6049382716049383,
+    "precision": 0.5633532934131736,
+    "recall": 0.6531519022493751,
+    "accuracy": 0.7652094160807092,
+    "roc_auc": 0.8330903782190162,
+    "confusion_matrix": [
+      [
+        7660,
+        1823
+      ],
+      [
+        1249,
+        2352
+      ]
+    ],
+    "rows": 13084,
+    "threshold": 0.5
+  },
+  "threshold": 0.5,
+  "warnings": [],
+  "iterations": [],
+  "model_path": "models/retained/general20/catboost/catboost.cbm",
+  "preprocessor_path": "prepared/retained/general20/preprocessor.joblib",
+  "model_sha256": "95a4dfa386ff190002f44fc15fbb475287fbdd603b0a4c78e8d001494adb3ae1",
+  "preprocessor_sha256": "6bdc1b31a727efdc7abe739b31b95b372f647be0ea4a8700e38c4299c74d35b8"
+}

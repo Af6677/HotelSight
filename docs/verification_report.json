@@ -1,0 +1,112 @@
+{
+  "all_passed": true,
+  "arm": "retained_historical24",
+  "checks": {
+    "1_hashes": {
+      "passed": true,
+      "model": "XGBoost",
+      "model_path": "models/retained/historical24/xgboost/xgboost.ubj",
+      "preprocessor_path": "prepared/retained/historical24/preprocessor.joblib"
+    },
+    "2_load_without_warnings": {
+      "passed": true,
+      "warnings": []
+    },
+    "3a_validation_probabilities_reproduced": {
+      "passed": true,
+      "rows": 17881,
+      "max_abs_error": 0.0
+    },
+    "3b_test_probabilities_reproduced": {
+      "passed": true,
+      "rows": 17882,
+      "max_abs_error": 0.0
+    },
+    "4_sealed_test_metrics_match": {
+      "passed": true,
+      "repeated_record_test": {
+        "f1": 0.8102,
+        "accuracy": 0.857,
+        "precision": 0.7975,
+        "recall": 0.8234,
+        "roc_auc": 0.9317,
+        "confusion_matrix": [
+          [
+            9866,
+            1386
+          ],
+          [
+            1171,
+            5459
+          ]
+        ]
+      },
+      "one_copy_test": {
+        "f1": 0.6995,
+        "accuracy": 0.8307,
+        "precision": 0.684,
+        "recall": 0.7157,
+        "roc_auc": 0.8906,
+        "confusion_matrix": [
+          [
+            8292,
+            1191
+          ],
+          [
+            1024,
+            2578
+          ]
+        ]
+      },
+      "rows_repeated": 17882,
+      "rows_one_copy": 13085,
+      "max_metric_difference": 0.0
+    },
+    "5_validation_comparison_recomputed": {
+      "passed": true,
+      "max_metric_difference": 0.0,
+      "models": [
+        {
+          "model": "Logistic Regression",
+          "configuration": 1,
+          "f1": 0.7419,
+          "precision": 0.7191,
+          "recall": 0.7662,
+          "accuracy": 0.8024,
+          "roc_auc": 0.8844,
+          "weights_in_package": false
+        },
+        {
+          "model": "Random Forest",
+          "configuration": 2,
+          "f1": 0.7905,
+          "precision": 0.8397,
+          "recall": 0.7468,
+          "accuracy": 0.8533,
+          "roc_auc": 0.9266,
+          "weights_in_package": false
+        },
+        {
+          "model": "XGBoost",
+          "configuration": 2,
+          "f1": 0.8029,
+          "precision": 0.7912,
+          "recall": 0.8149,
+          "accuracy": 0.8516,
+          "roc_auc": 0.9302,
+          "weights_in_package": true
+        },
+        {
+          "model": "CatBoost",
+          "configuration": 2,
+          "f1": 0.8003,
+          "precision": 0.7704,
+          "recall": 0.8326,
+          "accuracy": 0.8459,
+          "roc_auc": 0.9288,
+          "weights_in_package": false
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "arm": "deduplicated_general20",
+    "raw_validation_rows_reproduced": 64,
+    "maximum_probability_error": 0.0
+  },
+  {
+    "arm": "deduplicated_historical24",
+    "raw_validation_rows_reproduced": 64,
+    "maximum_probability_error": 0.0
+  },
+  {
+    "arm": "retained_general20",
+    "raw_validation_rows_reproduced": 64,
+    "maximum_probability_error": 0.0
+  },
+  {
+    "arm": "retained_historical24",
+    "raw_validation_rows_reproduced": 64,
+    "maximum_probability_error": 0.0
+  }
+]

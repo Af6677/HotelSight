@@ -1,0 +1,97 @@
+{
+  "policy": "deduplicated",
+  "family": "historical24",
+  "slug": "logistic_regression",
+  "model": "Logistic Regression",
+  "configuration": 1,
+  "manual_parameters": {
+    "C": 0.1,
+    "solver": "lbfgs"
+  },
+  "effective_parameters": {
+    "C": 0.1,
+    "class_weight": "balanced",
+    "dual": false,
+    "fit_intercept": true,
+    "intercept_scaling": 1,
+    "l1_ratio": 0.0,
+    "max_iter": 3000,
+    "n_jobs": null,
+    "penalty": "deprecated",
+    "random_state": 42,
+    "solver": "lbfgs",
+    "tol": 0.0001,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "training_positive_weight_ratio": 2.6333829217494795,
+  "started_utc": "2026-10-22T03:41:29.824026+00:00",
+  "finished_utc": "2026-10-22T03:41:31.765557+00:00",
+  "seconds": 1.9415586309996797,
+  "train": {
+    "f1": 0.6233803836409699,
+    "precision": 0.5242694805194805,
+    "recall": 0.7686997917286522,
+    "accuracy": 0.7443620105144205,
+    "roc_auc": 0.8347883657521273,
+    "confusion_matrix": [
+      [
+        32532,
+        11722
+      ],
+      [
+        3887,
+        12918
+      ]
+    ],
+    "rows": 61059,
+    "threshold": 0.5
+  },
+  "validation": {
+    "f1": 0.6222423351057812,
+    "precision": 0.5250095456281023,
+    "recall": 0.7636767564565399,
+    "accuracy": 0.7448028125955365,
+    "roc_auc": 0.8297432113936739,
+    "confusion_matrix": [
+      [
+        6995,
+        2488
+      ],
+      [
+        851,
+        2750
+      ]
+    ],
+    "rows": 13084,
+    "threshold": 0.5
+  },
+  "one_copy_validation": {
+    "f1": 0.6222423351057812,
+    "precision": 0.5250095456281023,
+    "recall": 0.7636767564565399,
+    "accuracy": 0.7448028125955365,
+    "roc_auc": 0.8297432113936739,
+    "confusion_matrix": [
+      [
+        6995,
+        2488
+      ],
+      [
+        851,
+        2750
+      ]
+    ],
+    "rows": 13084,
+    "threshold": 0.5
+  },
+  "threshold": 0.5,
+  "warnings": [],
+  "iterations": [
+    78
+  ],
+  "model_path": "models/deduplicated/historical24/logistic_regression/logistic_regression.joblib",
+  "preprocessor_path": "prepared/deduplicated/historical24/preprocessor.joblib",
+  "model_sha256": "ee11cdf8be03af13730be8272304f61b4363e50e3ccc59ba9ae0331ed4ec3843",
+  "preprocessor_sha256": "644ca7795bd1266c0d9d325a07332b352e9f85eb76ca29d015b08e00b81c026f"
+}

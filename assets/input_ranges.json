@@ -1,0 +1,72 @@
+{
+ "days_in_waiting_list": {
+  "min": 0.0,
+  "max": 391.0,
+  "median": 0.0
+ },
+ "lead_time": {
+  "min": 0.0,
+  "max": 737.0,
+  "median": 69.0
+ },
+ "arrival_date_week_number": {
+  "min": 1.0,
+  "max": 53.0,
+  "median": 27.0
+ },
+ "arrival_date_day_of_month": {
+  "min": 1.0,
+  "max": 31.0,
+  "median": 16.0
+ },
+ "stays_in_weekend_nights": {
+  "min": 0.0,
+  "max": 18.0,
+  "median": 1.0
+ },
+ "stays_in_week_nights": {
+  "min": 0.0,
+  "max": 42.0,
+  "median": 2.0
+ },
+ "adults": {
+  "min": 0.0,
+  "max": 40.0,
+  "median": 2.0
+ },
+ "children": {
+  "min": 0.0,
+  "max": 10.0,
+  "median": 0.0
+ },
+ "babies": {
+  "min": 0.0,
+  "max": 10.0,
+  "median": 0.0
+ },
+ "previous_cancellations": {
+  "min": 0.0,
+  "max": 26.0,
+  "median": 0.0
+ },
+ "previous_bookings_not_canceled": {
+  "min": 0.0,
+  "max": 72.0,
+  "median": 0.0
+ },
+ "adr": {
+  "min": 0.0,
+  "max": 510.0,
+  "median": 95.0
+ },
+ "required_car_parking_spaces": {
+  "min": 0.0,
+  "max": 8.0,
+  "median": 0.0
+ },
+ "total_of_special_requests": {
+  "min": 0.0,
+  "max": 5.0,
+  "median": 0.0
+ }
+}

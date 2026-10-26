@@ -1,0 +1,97 @@
+{
+  "policy": "deduplicated",
+  "family": "general20",
+  "slug": "logistic_regression",
+  "model": "Logistic Regression",
+  "configuration": 2,
+  "manual_parameters": {
+    "C": 1.0,
+    "solver": "lbfgs"
+  },
+  "effective_parameters": {
+    "C": 1.0,
+    "class_weight": "balanced",
+    "dual": false,
+    "fit_intercept": true,
+    "intercept_scaling": 1,
+    "l1_ratio": 0.0,
+    "max_iter": 3000,
+    "n_jobs": null,
+    "penalty": "deprecated",
+    "random_state": 42,
+    "solver": "lbfgs",
+    "tol": 0.0001,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "training_positive_weight_ratio": 2.6333829217494795,
+  "started_utc": "2026-10-22T03:39:46.157368+00:00",
+  "finished_utc": "2026-10-22T03:39:50.922301+00:00",
+  "seconds": 4.764941860000363,
+  "train": {
+    "f1": 0.5689926172898309,
+    "precision": 0.474329958308517,
+    "recall": 0.7108598631359715,
+    "accuracy": 0.7035981591575362,
+    "roc_auc": 0.7828675305400392,
+    "confusion_matrix": [
+      [
+        31015,
+        13239
+      ],
+      [
+        4859,
+        11946
+      ]
+    ],
+    "rows": 61059,
+    "threshold": 0.5
+  },
+  "validation": {
+    "f1": 0.559322033898305,
+    "precision": 0.4673001676914477,
+    "recall": 0.6964732018883644,
+    "accuracy": 0.6979516967288291,
+    "roc_auc": 0.7746915708763453,
+    "confusion_matrix": [
+      [
+        6624,
+        2859
+      ],
+      [
+        1093,
+        2508
+      ]
+    ],
+    "rows": 13084,
+    "threshold": 0.5
+  },
+  "one_copy_validation": {
+    "f1": 0.559322033898305,
+    "precision": 0.4673001676914477,
+    "recall": 0.6964732018883644,
+    "accuracy": 0.6979516967288291,
+    "roc_auc": 0.7746915708763453,
+    "confusion_matrix": [
+      [
+        6624,
+        2859
+      ],
+      [
+        1093,
+        2508
+      ]
+    ],
+    "rows": 13084,
+    "threshold": 0.5
+  },
+  "threshold": 0.5,
+  "warnings": [],
+  "iterations": [
+    149
+  ],
+  "model_path": "models/deduplicated/general20/logistic_regression/logistic_regression.joblib",
+  "preprocessor_path": "prepared/deduplicated/general20/preprocessor.joblib",
+  "model_sha256": "360ba191387f041021927ffbe6a7ef9745e723a40ad12eed42d09d728673e26f",
+  "preprocessor_sha256": "dad8c0ea03d44847638ba97b6189bf30646512a0390f9ef6b94d4e3d7a49c5f0"
+}

@@ -1,0 +1,122 @@
+[
+  {
+    "path": "models/deduplicated/general20/logistic_regression/logistic_regression.joblib",
+    "bytes": 2284,
+    "sha256": "360ba191387f041021927ffbe6a7ef9745e723a40ad12eed42d09d728673e26f",
+    "reason": "Non-selected model weight; trial and reload evidence included; recreate with reproduce.py"
+  },
+  {
+    "path": "models/deduplicated/general20/random_forest/random_forest.joblib",
+    "bytes": 131171558,
+    "sha256": "e9f19c5000bd61accbe0e78c0d000621ae04ab749a2ab8863de91d3f60758909",
+    "reason": "Non-selected model weight; trial and reload evidence included; recreate with reproduce.py"
+  },
+  {
+    "path": "models/deduplicated/general20/xgboost/xgboost.ubj",
+    "bytes": 5992994,
+    "sha256": "d238c405e1a88ac86ae7c4e4f6d1cdcc82b1355c6971d63f810270222653593b",
+    "reason": "Non-selected model weight; trial and reload evidence included; recreate with reproduce.py"
+  },
+  {
+    "path": "models/deduplicated/historical24/catboost/catboost.cbm",
+    "bytes": 2111080,
+    "sha256": "a237da87c68bc188155fbe7486288a1f0382115f1391b153f3ba99e38fda3f06",
+    "reason": "Non-selected model weight; trial and reload evidence included; recreate with reproduce.py"
+  },
+  {
+    "path": "models/deduplicated/historical24/logistic_regression/logistic_regression.joblib",
+    "bytes": 2330,
+    "sha256": "ee11cdf8be03af13730be8272304f61b4363e50e3ccc59ba9ae0331ed4ec3843",
+    "reason": "Non-selected model weight; trial and reload evidence included; recreate with reproduce.py"
+  },
+  {
+    "path": "models/deduplicated/historical24/random_forest/random_forest.joblib",
+    "bytes": 129685853,
+    "sha256": "cd1bbc806604d0d56b412b16fbceb582aff6a7068223986277c618095751930a",
+    "reason": "Non-selected model weight; trial and reload evidence included; recreate with reproduce.py"
+  },
+  {
+    "path": "models/retained/general20/logistic_regression/logistic_regression.joblib",
+    "bytes": 2282,
+    "sha256": "986b3128f23b3485909d6ab8798f2ca7313e6d0f823e226dc4a0e3f18b56e2cc",
+    "reason": "Non-selected model weight; trial and reload evidence included; recreate with reproduce.py"
+  },
+  {
+    "path": "models/retained/general20/random_forest/random_forest.joblib",
+    "bytes": 13972622,
+    "sha256": "94afd3d7a72cbffce2c795810bbbe30e534fe8498d35336ce9b07f455b95fead",
+    "reason": "Non-selected model weight; trial and reload evidence included; recreate with reproduce.py"
+  },
+  {
+    "path": "models/retained/general20/xgboost/xgboost.ubj",
+    "bytes": 5737760,
+    "sha256": "e7462d6695dafce6c24f4bb7f5e447d66bf88a6a6de8fb4d6ebf19f32dde01ce",
+    "reason": "Non-selected model weight; trial and reload evidence included; recreate with reproduce.py"
+  },
+  {
+    "path": "models/retained/historical24/catboost/catboost.cbm",
+    "bytes": 2114088,
+    "sha256": "290664c715e4221390640b8ffd8ce550195f39576ba91632eb1e559273d08f39",
+    "reason": "Non-selected model weight; trial and reload evidence included; recreate with reproduce.py"
+  },
+  {
+    "path": "models/retained/historical24/logistic_regression/logistic_regression.joblib",
+    "bytes": 2336,
+    "sha256": "3c96e2f79015cc4e9cd711bc1c1ebea299eb48ab7a6e0832920f20847d75f2c2",
+    "reason": "Non-selected model weight; trial and reload evidence included; recreate with reproduce.py"
+  },
+  {
+    "path": "models/retained/historical24/random_forest/random_forest.joblib",
+    "bytes": 144303832,
+    "sha256": "d54cc2e584aeb0280fce83918a1163e2b54056b229d7fc0863d913b21f11d2f3",
+    "reason": "Non-selected model weight; trial and reload evidence included; recreate with reproduce.py"
+  },
+  {
+    "path": "prepared/deduplicated/general20/train.npz",
+    "bytes": 1119351,
+    "sha256": "a33abe3ecf0fb4e6e99e69197c0c76c624fa53d5db862a05503c2addf647e47d",
+    "reason": "Regenerable cache"
+  },
+  {
+    "path": "prepared/deduplicated/general20/validation.npz",
+    "bytes": 267926,
+    "sha256": "7ac99e047315c87d5e33ce0e3c02ce4d9c6c3c61906d8d1c36d5c29438b037be",
+    "reason": "Regenerable cache"
+  },
+  {
+    "path": "prepared/deduplicated/historical24/train.npz",
+    "bytes": 1459527,
+    "sha256": "d1745dd4832d11121a7881f9eaf0f460f0ac6605228418199de4a53018cc7ecb",
+    "reason": "Regenerable cache"
+  },
+  {
+    "path": "prepared/deduplicated/historical24/validation.npz",
+    "bytes": 346263,
+    "sha256": "609736ad4c956dc0a92d783f9c56a1bbe744a947615c87b07504fbc1db3fba45",
+    "reason": "Regenerable cache"
+  },
+  {
+    "path": "prepared/retained/general20/train.npz",
+    "bytes": 1327393,
+    "sha256": "5c124524cfb7d6d9cc8b2ba4cadc05a3de0ddef8be6b1029ca22a960edaed561",
+    "reason": "Regenerable cache"
+  },
+  {
+    "path": "prepared/retained/general20/validation.npz",
+    "bytes": 314743,
+    "sha256": "f523246f1b8a37cf627bedda369ef8cba3995d33ff641f2687e84b10868acb7c",
+    "reason": "Regenerable cache"
+  },
+  {
+    "path": "prepared/retained/historical24/train.npz",
+    "bytes": 1689789,
+    "sha256": "bc85171ceec16c10796089b53218795d80139d66bd6efd048caa1a874b5a5972",
+    "reason": "Regenerable cache"
+  },
+  {
+    "path": "prepared/retained/historical24/validation.npz",
+    "bytes": 396938,
+    "sha256": "d0cc415b50983ff499c5c89c13d032869a1b2ce4eaf10c0d5dae5a742187cf97",
+    "reason": "Regenerable cache"
+  }
+]

@@ -1,0 +1,12 @@
+{
+ "computed_utc": "2026-10-22T04:08:50.003305+00:00",
+ "arm": "retained_historical24",
+ "explainer": "shap.TreeExplainer (tree_path_dependent)",
+ "units": "log-odds of cancellation",
+ "base_log_odds": -0.004788339138031006,
+ "base_probability": 0.49880291750273614,
+ "rows_repeated": 17882,
+ "rows_one_copy": 13085,
+ "max_reconstruction_error_log_odds": 2.002716064453125e-05,
+ "max_probability_vs_saved_error": 0.0
+}
