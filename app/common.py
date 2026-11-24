@@ -461,6 +461,52 @@ def show_chart(chart):
     st.altair_chart(chart, width="stretch", theme=None)
 
 
+def arrivals_by_month(df: pd.DataFrame, arrival: str, value_eur: str, key: str, count_title: str = "Reservations",
+                      height: int = 300) -> bool:
+    """Monthly arrivals split by prediction, shown as a count or as room revenue (room rate × nights).
+
+    df needs a 'Prediction' column, an arrival date column (YYYY-MM-DD) and a stay value column in euros.
+    Returns False when no arrival date can be read, so the caller can explain why nothing is drawn."""
+    arr = df.assign(When=pd.to_datetime(df[arrival], errors="coerce", format="%Y-%m-%d")).dropna(subset=["When"])
+    if arr.empty:
+        return False
+    arr["Month"] = arr["When"].dt.to_period("M").dt.to_timestamp()
+    years = sorted(arr["When"].dt.year.unique().tolist())
+    c1, c2 = st.columns([2, 1], vertical_alignment="center")
+    with c1:
+        measure = st.segmented_control("Show", [count_title, "Room revenue"], default=count_title, key=key,
+                                       label_visibility="collapsed")
+    with c2:
+        year = st.selectbox("Arrival year", ["All years"] + years, key=f"{key}_year", label_visibility="collapsed",
+                            format_func=lambda y: y if y == "All years" else f"Arrivals in {y}")
+    if year != "All years":
+        arr = arr[arr["When"].dt.year == year]
+    if measure == "Room revenue":
+        data = arr.groupby(["Month", "Prediction"], as_index=False)[value_eur].sum()
+        code = currency_code()
+        data["Revenue"] = currency.convert(data[value_eur], code, _fx())
+        title = f"Room revenue ({code})"
+        y = alt.Y("sum(Revenue):Q", title=title)
+        value_tip = alt.Tooltip("sum(Revenue):Q", title=title, format=",.0f")
+    else:
+        data = arr
+        y = alt.Y("count():Q", title=count_title)
+        value_tip = alt.Tooltip("count():Q", title=count_title)
+    show_chart(base_chart(alt.Chart(data).mark_bar(stroke="#fff", strokeWidth=1).encode(
+        x=alt.X("yearmonth(Month):O", title="Arrival month", scale=alt.Scale(paddingOuter=0.8),
+                axis=alt.Axis(format="%b %Y", formatType="time", labelAngle=0, labelOverlap="greedy",
+                              labelSeparation=8)),
+        y=y,
+        color=alt.Color("Prediction:N", scale=OUTCOME, legend=alt.Legend(orient="top", title=None)),
+        order=alt.Order("Prediction:N"),
+        tooltip=[alt.Tooltip("yearmonth(Month):O", title="Arrival month", format="%B %Y"),
+                 "Prediction:N", value_tip]).properties(height=height)))
+    if measure == "Room revenue":
+        st.caption("Room rate × nights by arrival month. The red part is the revenue flagged, not a forecast "
+                   "of lost revenue.")
+    return True
+
+
 def diverging_legend(title: str = "", totals: bool = False):
     """Legend for diverging_bars and waterfall_chart, drawn in HTML so long axis labels never push it out of the chart."""
     dot = '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:{};margin-right:6px"></span>'

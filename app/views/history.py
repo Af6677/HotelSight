@@ -9,8 +9,8 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
-from common import (OUTCOME, base_chart, convert_euro_text, dash, euros, friendly, get_countries, kpis, money_view,
-                    page_header, pct, section, show_chart, verdict_colours)
+from common import (OUTCOME, arrivals_by_month, base_chart, convert_euro_text, dash, euros, friendly, get_countries,
+                    kpis, money_view, page_header, pct, section, show_chart, verdict_colours)
 from hotelsight import batch, history
 from hotelsight.contract import MODEL_FIELDS, display_value
 
@@ -106,6 +106,11 @@ else:
             stroke="#fff", strokeWidth=1, height={"band": 0.5}).encode(
             y=alt.Y("hotel:N", title=None), x=alt.X("count():Q", title="Predictions", stack="zero"), color=colour,
             tooltip=["hotel:N", "Prediction:N", alt.Tooltip("count():Q", title="Predictions")]).properties(height=240)))
+    with st.container(key="card_hist_month"):
+        st.html('<div class="hs-card-title">Arrivals by month</div>')
+        if not arrivals_by_month(f, "arrival", "stay_value", "hist_month_measure", count_title="Predictions",
+                                 height=260):
+            st.caption("The shown predictions have no full arrival date, so they cannot be charted by month.")
 
     # ------------------------------------------------------------------ table + details
     section("Saved predictions", "Select a row to see the exact inputs")
