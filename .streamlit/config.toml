@@ -1,21 +1,30 @@
 [theme]
 base = "light"
-primaryColor = "#173a63"
-backgroundColor = "#f6f4ef"
-secondaryBackgroundColor = "#efebe3"
-textColor = "#1c2533"
-borderColor = "#e3ddd1"
-baseRadius = "0.6rem"
+primaryColor = "#1D4ED8"
+backgroundColor = "#F5F7FA"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#0F1B2D"
+linkColor = "#1D4ED8"
+borderColor = "#8492A6"
+dataframeBorderColor = "#E2E8F0"
+dataframeHeaderBackgroundColor = "#F5F7FA"
+redColor = "#C2353A"
+orangeColor = "#B7791F"
+greenColor = "#1D4ED8"
+blueColor = "#1D4ED8"
+baseRadius = "0.5rem"
+buttonRadius = "0.5rem"
+baseFontSize = 15
 font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap, 'Segoe UI', sans-serif"
-headingFont = "'Playfair Display':https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap, Georgia, serif"
+headingFont = "'Plus Jakarta Sans':https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap, Inter, 'Segoe UI', sans-serif"
 showWidgetBorder = true
 
 [theme.sidebar]
-backgroundColor = "#0b1d33"
-secondaryBackgroundColor = "#14304f"
-textColor = "#e9edf3"
-borderColor = "#1f3a5c"
-primaryColor = "#c5a059"
+backgroundColor = "#131F36"
+secondaryBackgroundColor = "#1C2B47"
+textColor = "#DFE6F1"
+borderColor = "#27354F"
+primaryColor = "#60A5FA"
 
 [server]
 headless = true

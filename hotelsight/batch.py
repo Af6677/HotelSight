@@ -292,7 +292,14 @@ def predict(model, parsed: Parsed, countries: dict, chunk: int = 1000, progress=
         if any(x.actual is not None for x in parsed.rows):
             item["Actual outcome"] = {1: "Cancelled", 0: "Not cancelled"}.get(r.actual, "")
         out.append(item)
-    return pd.DataFrame(out)
+    df = pd.DataFrame(out)
+    if "Actual outcome" in df:                 # put the prediction and what really happened side by side
+        where = df.columns.get_loc("Prediction") + 1
+        df.insert(where, "Actual outcome", df.pop("Actual outcome"))
+        expected = df["Prediction"].map({"Likely to cancel": "Cancelled", "Likely to stay": "Not cancelled"})
+        checked = expected.notna() & df["Actual outcome"].ne("")
+        df.insert(where + 1, "Correct?", np.where(~checked, "", np.where(expected == df["Actual outcome"], "Correct", "Wrong")))
+    return df
 
 
 # ---------------------------------------------------------------- files for download

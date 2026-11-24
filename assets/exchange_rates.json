@@ -1,0 +1,16 @@
+{
+  "base": "EUR",
+  "date": "2026-11-13",
+  "source": "European Central Bank reference rates via frankfurter.dev",
+  "rates": {
+    "EUR": 1.0,
+    "AUD": 1.6288,
+    "CNY": 7.3738,
+    "GBP": 0.83559,
+    "JPY": 176.83,
+    "MYR": 4.5175,
+    "SGD": 1.4236,
+    "THB": 37.483,
+    "USD": 1.1052
+  }
+}

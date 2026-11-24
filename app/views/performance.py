@@ -6,15 +6,12 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
-from common import BLUE, INK, NAVY, SEQ, base_chart, load, page_header, pct, section
+from common import INK, SECOND, SEQ, STAY, base_chart, kpis, load, page_header, pct, section, show_chart
 
 t = load("test_metrics")
-page_header("Model evidence · sealed test set", "Test performance of the selected model",
-            f"{t['model']} was frozen on validation F1 before any test prediction was scored. The same test rows are "
-            "reported in two ways, because the dataset contains repeated identical records whose meaning cannot be "
-            "verified (no booking ID).",
-            chips=["Scored once, after selection", f"{t['repeated']['rows']:,} repeated-record rows",
-                   f"{t['one_copy']['rows']:,} one-copy rows", "Threshold 0.50"], icon_name="fact_check")
+page_header("Model evidence", "Test performance",
+            f"{t['model']} was frozen before any test prediction was scored. The same test rows are reported in two "
+            "ways, because repeated identical records in the dataset cannot be verified (no booking ID).")
 
 
 def confusion(cm):
@@ -22,8 +19,8 @@ def confusion(cm):
     df = pd.DataFrame([{"Actual": labels[i], "Predicted": labels[j], "Bookings": cm[i][j]} for i in range(2) for j in range(2)])
     total = df.Bookings.sum()
     df["text"] = df.Bookings.map(lambda v: f"{v:,}\n({100 * v / total:.1f}%)")
-    cut = 0.45 * df.Bookings.max()
-    heat = alt.Chart(df).mark_rect(cornerRadius=6, stroke="white", strokeWidth=3).encode(
+    cut = 0.6 * df.Bookings.max()              # white text only on the dark cells
+    heat = alt.Chart(df).mark_rect(cornerRadius=4, stroke="white", strokeWidth=2).encode(
         x=alt.X("Predicted:N", sort=labels, axis=alt.Axis(orient="top", labelAngle=0, title="Predicted")),
         y=alt.Y("Actual:N", sort=labels, title="Actual"),
         color=alt.Color("Bookings:Q", scale=alt.Scale(range=SEQ[:6]), legend=None),
@@ -38,14 +35,14 @@ def block(m, key, name, rows_note):
     with st.container(key=key, height="stretch"):
         st.html(f'<div class="hs-card-title">{name}</div>')
         st.caption(rows_note)
-        st.altair_chart(confusion(m["confusion_matrix"]), width="stretch")
+        show_chart(confusion(m["confusion_matrix"]))
         tn, fp = m["confusion_matrix"][0]; fn, tp = m["confusion_matrix"][1]
         st.caption(f"Caught {tp:,} of {tp + fn:,} cancellations; missed {fn:,}. Wrongly flagged {fp:,} of {tn + fp:,} "
                    "bookings that were not cancelled.")
 
 
 rep, one = t["repeated"], t["one_copy"]
-c = st.columns(4)
+c = kpis("perf", ["target", "check_circle", "target", "check_circle"], {2: "slate", 3: "slate"})
 off = {"delta_color": "off", "delta_arrow": "off", "border": True}
 c[0].metric("F1-score", pct(rep["f1"], 2), "repeated records", help="Repeated-record test population", **off)
 c[1].metric("Accuracy", pct(rep["accuracy"], 2), "repeated records", help="Repeated-record test population", **off)
@@ -56,10 +53,10 @@ section("Confusion matrices", "Decision threshold 0.50")
 left, right = st.columns(2, gap="medium")
 with left:
     block(rep, "card_cm_rep", "Repeated-record test population",
-          f"{rep['rows']:,} rows: every repeated copy counts (the deployed arm's evaluation population).")
+          f"{rep['rows']:,} rows, every repeated copy counted.")
 with right:
     block(one, "card_cm_one", "One copy per complete record",
-          f"{one['rows']:,} rows: the same test rows with each identical record counted once.")
+          f"{one['rows']:,} rows, each identical record counted once.")
 
 st.info("Repeated records are not proven to be separate bookings, and one-copy records are not proven to be unique "
         "guests. Neither population is 'the true' score; report both.", icon=":material/info:")
@@ -82,16 +79,16 @@ with st.container(key="card_sens"):
                       .assign(Population="One copy per record")])
     long["label"] = long["F1"].map(lambda v: f"{100 * v:.1f}%")
     arms = list(sens["Experiment arm"])
-    enc = dict(y=alt.Y("Experiment arm:N", sort=arms, title=None),
+    enc = dict(y=alt.Y("Experiment arm:N", sort=arms, title=None, axis=alt.Axis(labelLimit=340)),
                yOffset=alt.YOffset("Population:N", sort=["Repeated records", "One copy per record"]))
     bars = alt.Chart(long).mark_bar(cornerRadiusEnd=4).encode(
         x=alt.X("F1:Q", title="Test F1-score", scale=alt.Scale(domain=[0, 1]), axis=alt.Axis(format="%")),
         color=alt.Color("Population:N", scale=alt.Scale(domain=["Repeated records", "One copy per record"],
-                                                        range=[BLUE, NAVY]), legend=alt.Legend(orient="top", title=None)),
+                                                        range=[STAY, SECOND]), legend=alt.Legend(orient="top", title=None)),
         tooltip=["Experiment arm", "Population", alt.Tooltip("F1:Q", format=".4f")], **enc)
     text = alt.Chart(long).mark_text(align="left", dx=5, color=INK, fontSize=12).encode(
         x="F1:Q", text="label:N", **enc)
-    st.altair_chart(base_chart((bars + text).properties(height=alt.Step(26))), width="stretch")
+    show_chart(base_chart((bars + text).properties(height=alt.Step(26))))
     with st.expander("Full sensitivity table", icon=":material/table_view:"):
         st.dataframe(sens, hide_index=True, width="stretch",
                      column_config={c: st.column_config.NumberColumn(c, format="%.4f") for c in sens.columns if c not in

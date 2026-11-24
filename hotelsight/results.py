@@ -44,6 +44,16 @@ def validation_comparison() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def validation_comparison_one_copy() -> pd.DataFrame:
+    """The same four models and settings, with each identical validation record counted once."""
+    rows = []
+    for slug in MODEL_SLUGS:
+        b = _read(ARM_MODELS / slug / "best.json")
+        rows.append({"Model": b["model"], "Configuration": b["configuration"],
+                     **{METRIC_LABEL[k]: b["one_copy_validation"][k] for k in METRICS}})
+    return pd.DataFrame(rows)
+
+
 def trials() -> pd.DataFrame:
     """All 12 configurations tried in the deployed arm (3 per model)."""
     t = _read(EXPERIMENT / "results" / "retained" / "historical24_trials.json")

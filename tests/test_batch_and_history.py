@@ -23,6 +23,9 @@ def test_dataset_layout_reproduces_saved_predictions(model, paired):
     assert res["Problems"].eq("").all()
     assert np.max(np.abs(res["Cancellation probability"].to_numpy() - saved.loc[rows].to_numpy())) < 1e-6
     assert set(res["Actual outcome"]) <= {"Cancelled", "Not cancelled"}
+    cancelled = res["Actual outcome"].eq("Cancelled")
+    flagged = res["Prediction"].eq("Likely to cancel")
+    assert res["Correct?"].eq("Correct").eq(cancelled == flagged).all()
 
 
 def test_template_round_trip_reproduces_examples(model):

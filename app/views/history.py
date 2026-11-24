@@ -3,12 +3,14 @@ import sys as _sys, pathlib as _pl  # make app/common.py importable however the 
 _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1]))
 
 import json
+from html import escape
 
 import altair as alt
 import pandas as pd
 import streamlit as st
 
-from common import BLUE, RED, base_chart, euros, friendly, get_countries, page_header, pct, section
+from common import (OUTCOME, base_chart, convert_euro_text, dash, euros, friendly, get_countries, kpis, money_view,
+                    page_header, pct, section, show_chart, verdict_colours)
 from hotelsight import batch, history
 from hotelsight.contract import MODEL_FIELDS, display_value
 
@@ -30,10 +32,8 @@ def clear_all():
 
 
 h = history.load()
-page_header("Records", "Prediction history",
-            "Every prediction saved from <b>Check a reservation</b> and <b>Upload reservations</b>, newest first. "
-            "Filter it, open a record to see the exact inputs, export it, or remove old uploads.",
-            chips=[f"{len(h):,} saved predictions", f"Stored locally in {history.db_path().name}"], icon_name="history")
+page_header("Reservations", "Prediction history",
+            "Every saved check and upload, newest first. Select a row to see the exact inputs that were used.")
 if ss.get("hist_notice"):
     st.success(ss.pop("hist_notice"), icon=":material/check_circle:")
 
@@ -51,19 +51,21 @@ batches = (h.groupby("batch_id").agg(name=("batch_name", "first"), when=("create
 batch_label = {b: f"{r['name']} · {r['when']:%d %b %Y %H:%M} · {r['n']:,} reservation{'s' * (r['n'] != 1)}"
                for b, r in batches.iterrows()}
 ALL = "All checks and uploads"
+ALL_SOURCES = "All sources"
 
 # ------------------------------------------------------------------ filters
 with st.container(key="card_filters"):
-    c1, c2, c3, c4 = st.columns([1.5, 1.6, 1.1, 1.1])
-    sources = c1.multiselect("Source", list(SOURCE.values()), default=list(SOURCE.values()), key="hist_source")
+    c1, c2, c3, c4, c5 = st.columns([1, 1.6, .9, 1, 1.5])
+    source = c1.selectbox("Source", [ALL_SOURCES] + list(SOURCE.values()), key="hist_source")
     pick = c2.selectbox("Check or upload", [ALL] + list(batches.index), key="hist_batch",
                         format_func=lambda b: b if b == ALL else batch_label[b])
     outcome = c3.selectbox("Prediction", ["All", "Likely to cancel", "Likely to stay"], key="hist_pred")
     search = c4.text_input("Search reference", key="hist_search", placeholder="e.g. RSV-10234")
     first, last = h["created_at"].min().date(), h["created_at"].max().date()
-    dates = st.date_input("Saved between", (first, last), min_value=first, max_value=last, key="hist_dates")
+    dates = c5.date_input("Saved between", (first, last), min_value=first, max_value=last, key="hist_dates",
+                          format="DD/MM/YYYY")
 
-f = h[h["Source"].isin(sources)]
+f = h if source == ALL_SOURCES else h[h["Source"] == source]
 if pick != ALL:
     f = f[f["batch_id"] == pick]
 if outcome != "All":
@@ -73,50 +75,54 @@ if search.strip():
 if isinstance(dates, tuple) and len(dates) == 2:
     f = f[(f["created_at"].dt.date >= dates[0]) & (f["created_at"].dt.date <= dates[1])]
 
-k = st.columns(4)
+k = kpis("hist", ["list_alt", "folder_open", "event_busy", "payments"], {2: "coral", 3: "coral"})
 k[0].metric("Predictions shown", f"{len(f):,}", f"of {len(h):,} saved", delta_color="off", delta_arrow="off",
             border=True)
-k[1].metric("Checks and uploads", f"{f['batch_id'].nunique():,}", border=True)
+k[1].metric("Checks and uploads", f"{f['batch_id'].nunique():,}", "in this view", delta_color="off",
+            delta_arrow="off", border=True)
 n_cancel = int(f["predicted_cancel"].sum())
 k[2].metric("Likely to cancel", f"{n_cancel:,}", f"{pct(n_cancel / max(len(f), 1))} of shown", delta_color="off",
             delta_arrow="off", border=True)
 k[3].metric("Revenue flagged", euros(f.loc[f["predicted_cancel"] == 1, "stay_value"].sum()),
             "room rate × nights", delta_color="off", delta_arrow="off", border=True,
-            help="Room rate × nights for the shown reservations flagged as likely to cancel (EUR).")
+            help="Room rate × nights for the shown reservations flagged as likely to cancel, shown in the "
+                 "currency chosen in the sidebar. Downloaded files stay in EUR.")
 
 if f.empty:
     st.warning("No saved predictions match these filters.", icon=":material/filter_alt_off:")
 else:
     left, right = st.columns(2, gap="medium")
-    colour = alt.Color("Prediction:N", scale=alt.Scale(domain=["Likely to cancel", "Likely to stay"], range=[RED, BLUE]),
-                       legend=alt.Legend(orient="top", title=None))
+    colour = alt.Color("Prediction:N", scale=OUTCOME, legend=alt.Legend(orient="top", title=None))
     with left.container(key="card_hist_dist", height="stretch"):
         st.html('<div class="hs-card-title">Spread of cancellation probabilities</div>')
-        st.altair_chart(base_chart(alt.Chart(f).mark_bar(cornerRadiusTopLeft=3, cornerRadiusTopRight=3).encode(
-            x=alt.X("probability:Q", bin=alt.Bin(extent=[0, 1], step=0.05), axis=alt.Axis(format="%"),
+        show_chart(base_chart(alt.Chart(f).mark_bar(cornerRadiusTopLeft=3, cornerRadiusTopRight=3).encode(
+            x=alt.X("probability:Q", bin=alt.Bin(extent=[0, 1], step=0.05), axis=alt.Axis(format="%", values=[0, .2, .4, .6, .8, 1]),
                     title="Cancellation probability"),
             y=alt.Y("count():Q", title="Predictions"), color=colour,
-            tooltip=[alt.Tooltip("count():Q", title="Predictions"), "Prediction:N"]).properties(height=240)),
-            width="stretch")
+            tooltip=[alt.Tooltip("count():Q", title="Predictions"), "Prediction:N"]).properties(height=240)))
     with right.container(key="card_hist_hotel", height="stretch"):
         st.html('<div class="hs-card-title">Predictions by property</div>')
-        st.altair_chart(base_chart(alt.Chart(f.assign(hotel=f["hotel"].fillna("Unknown"))).mark_bar(
-            cornerRadiusEnd=3, height={"band": 0.6}).encode(
+        show_chart(base_chart(alt.Chart(f.assign(hotel=f["hotel"].fillna("Unknown"))).mark_bar(
+            stroke="#fff", strokeWidth=1, height={"band": 0.5}).encode(
             y=alt.Y("hotel:N", title=None), x=alt.X("count():Q", title="Predictions", stack="zero"), color=colour,
-            tooltip=["hotel:N", "Prediction:N", alt.Tooltip("count():Q", title="Predictions")]).properties(height=240)),
-            width="stretch")
+            tooltip=["hotel:N", "Prediction:N", alt.Tooltip("count():Q", title="Predictions")]).properties(height=240)))
 
     # ------------------------------------------------------------------ table + details
     section("Saved predictions", "Select a row to see the exact inputs")
     table = pd.DataFrame({
-        "Saved": f["created_at"], "Source": f["Source"], "Check or upload": f["batch_name"], "Reference": f["reference"],
-        "Property": f["hotel"], "Arrival": f["arrival"], "Nights": f["nights"], "Stay value (EUR)": f["stay_value"],
-        "Probability": f["probability"] * 100, "Prediction": f["Prediction"], "Actual outcome": f["Actual outcome"],
-        "Main factor raising risk": f["top_raising"], "Main factor lowering risk": f["top_lowering"]})
-    picked = st.dataframe(table, hide_index=True, width="stretch", height=min(38 + 35 * len(table), 420),
+        "Saved": f["created_at"], "Reference": dash(f["reference"]), "Property": f["hotel"], "Arrival": f["arrival"],
+        "Nights": f["nights"], "Stay value (EUR)": f["stay_value"], "Probability": f["probability"] * 100,
+        "Prediction": f["Prediction"], "Actual outcome": f["Actual outcome"],
+        "Main factor raising risk": f["top_raising"], "Main factor lowering risk": f["top_lowering"],
+        "Source": f["Source"], "Check or upload": f["batch_name"]})
+    view, money_cfg = money_view(table.assign(**{
+        "Main factor raising risk": table["Main factor raising risk"].map(convert_euro_text),
+        "Main factor lowering risk": table["Main factor lowering risk"].map(convert_euro_text)}), ["Stay value (EUR)"])
+    picked = st.dataframe(verdict_colours(view), hide_index=True, width="stretch", height=min(38 + 35 * len(table), 420),
                           on_select="rerun", selection_mode="single-row", key="hist_table",
                           column_config={"Saved": st.column_config.DatetimeColumn(format="D MMM YYYY, HH:mm"),
-                                         "Stay value (EUR)": st.column_config.NumberColumn(format="€%.2f"),
+                                         "Nights": st.column_config.NumberColumn(format="%d"),
+                                         **money_cfg,
                                          "Probability": st.column_config.ProgressColumn(
                                              format="%.1f%%", min_value=0, max_value=100)})
     rows = picked.selection.rows if picked is not None else []
@@ -124,7 +130,7 @@ else:
         rec_row = f.iloc[rows[0]]
         rec = json.loads(rec_row["inputs_json"] or "{}")
         with st.container(key="card_detail"):
-            st.html(f'<div class="hs-card-title">Inputs of {rec_row["reference"] or "this prediction"} · '
+            st.html(f'<div class="hs-card-title">Inputs of {escape(rec_row["reference"] or "this prediction")} · '
                     f'{pct(rec_row["probability"])} · {rec_row["Prediction"]}</div>')
             st.dataframe(pd.DataFrame([{"Input": friendly(x), "Value": display_value(x, rec.get(x), countries),
                                         "Model field": x} for x in MODEL_FIELDS]),

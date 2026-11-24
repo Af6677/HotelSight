@@ -57,12 +57,12 @@ dashboard with `Ctrl+C` in the terminal. Run the tests with:
 
 | Path | Contents |
 |---|---|
-| `app/` | Streamlit dashboard: `streamlit_app.py` plus 5 pages in `app/views/` |
+| `app/` | Streamlit dashboard: `streamlit_app.py` plus 8 pages in `app/views/` |
 | `hotelsight/` | `contract.py` (24-input contract, labels, date rules, validation), `pipeline.py` (hash-checked model loading, prediction, SHAP), `results.py` (read-only access to the frozen results) |
 | `experiment/` | **Frozen controlled experiment, unchanged**: data, split membership, 4 preprocessors, selected models, 48 trial records, sealed test results, bootstrap, its own README and reproduction scripts, and the audit of earlier runs |
 | `assets/` | Derived dashboard assets: country names, training input ranges, example bookings, global SHAP. Rebuild with `scripts/build_assets.py` |
 | `scripts/` | `verify_experiment.py`, `check_date_conventions.py`, `build_assets.py`, `launch_check.py` |
-| `tests/` | 30 automated tests (pytest) |
+| `tests/` | 56 automated tests (pytest) |
 | `docs/` | `THESIS_AMENDMENTS.md/.docx` (Chapter 3 and 4 changes), `TEST_REPORT.md`, `verification_report.json`, `date_conventions.json`, `screenshots/` |
 | `archive/` | Earlier exploratory runs (superseded, **not used by the dashboard**) |
 | `requirements.txt` / `requirements-top.txt` | Exact versions, full set and top-level packages |
@@ -113,7 +113,7 @@ both verified on 100% of rows (`docs/date_conventions.json`):
 - **Overfitting gap:** train F1 0.95 vs validation F1 0.80.
 - **Limited tuning:** three fixed configurations per model.
 - **SHAP shows associations, not causes.**
-- **Not yet done:** usability testing with participants, and the EDA chapter figures.
+- **Not yet done:** usability testing with participants.
 
 ## Sources
 

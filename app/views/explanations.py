@@ -5,15 +5,15 @@ _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1]))
 import altair as alt
 import streamlit as st
 
-from common import BLUE, INK, base_chart, diverging_bars, diverging_legend, friendly, get_countries, load, page_header
+from common import (INK, STAY, base_chart, diverging_bars, diverging_legend, friendly, get_countries, kpis, load,
+                    page_header,
+                    show_chart)
 from hotelsight.contract import CATEGORY_LABELS
 
 summ = load("shap_summary")
-page_header("Model evidence · explainability", "What drives the model's predictions",
-            f"SHAP values from the deployed XGBoost model on the {summ['rows_repeated']:,} held-out test rows "
-            f"({summ['explainer']}). Units are log-odds of cancellation. One-hot columns are summed back to "
-            "the 24 inputs a manager enters.",
-            chips=["Global importance", "Value-level effects", "Associations, not causes"], icon_name="insights")
+page_header("Model evidence", "What drives predictions",
+            f"SHAP values from the deployed model on {summ['rows_repeated']:,} held-out test rows, in log-odds of "
+            "cancellation. These are associations, not causes.")
 
 imp = load("global_shap")
 pop = st.segmented_control("Test population", ["Repeated records", "One copy per record"], default="Repeated records")
@@ -23,22 +23,22 @@ df["Input"] = df["input"].map(friendly)
 df["label"] = df["Mean |SHAP|"].map(lambda v: f"{v:.2f}")
 order = list(df["Input"])
 
-c = st.columns(3)
+c = kpis("drivers", ["looks_one", "looks_two", "looks_3"])
 for i, (_, r) in enumerate(df.head(3).iterrows()):
-    c[i].metric(f"#{i + 1} driver", r["Input"].split(" (")[0], f"mean |SHAP| {r['Mean |SHAP|']:.2f} log-odds", delta_color="off",
+    c[i].metric(f"#{i + 1} driver", r["Input"].split(" (")[0], f"{r['Mean |SHAP|']:.2f} log-odds on average", delta_color="off",
                 delta_arrow="off", border=True)
 
 left, right = st.columns([1, 1], gap="medium")
 with left.container(key="card_global", height="stretch"):
     st.html('<div class="hs-card-title">Average influence of each input</div>')
-    bars = alt.Chart(df).mark_bar(cornerRadiusEnd=4, color=BLUE, height={"band": 0.7}).encode(
+    bars = alt.Chart(df).mark_bar(cornerRadiusEnd=4, color=STAY, height={"band": 0.66}).encode(
         y=alt.Y("Input:N", sort=order, title=None),
         x=alt.X("Mean |SHAP|:Q", title="Average absolute contribution (log-odds)",
                 scale=alt.Scale(domain=[0, 1.15 * float(df["Mean |SHAP|"].max())], nice=False)),   # room for labels
         tooltip=["Input", alt.Tooltip("Mean |SHAP|:Q", format=".3f")])
     text = alt.Chart(df).mark_text(align="left", dx=5, color=INK, fontSize=12).encode(
         y=alt.Y("Input:N", sort=order), x="Mean |SHAP|:Q", text="label:N")
-    st.altair_chart(base_chart((bars + text).properties(height=alt.Step(26))), width="stretch")
+    show_chart(base_chart((bars + text).properties(height=alt.Step(26))))
     st.caption("Longer bar = the input moves predictions more, on average, in either direction. It does not say whether "
                "it raises or lowers risk; use the explorer for that.")
 
@@ -60,10 +60,9 @@ with right.container(key="card_byvalue", height="stretch"):
     sub["Mean SHAP"] = sub["mean_shap"]
     sub["Test rows"] = sub["rows"]
     diverging_legend()
-    st.altair_chart(diverging_bars(sub, "Value", "Mean SHAP", "Average contribution (log-odds)",
+    show_chart(diverging_bars(sub, "Value", "Mean SHAP", "Average contribution (log-odds)",
                                    ["Value:N", alt.Tooltip("Mean SHAP:Q", format="+.3f"),
-                                    alt.Tooltip("Test rows:Q", format=",")]),
-                    width="stretch")
+                                    alt.Tooltip("Test rows:Q", format=",")]))
     st.caption("Categories show the 12 most frequent values; numbers are split into equal-count bands. "
                "These are associations learned from historical records (for example, parking requests go with "
                "lower predicted risk). They are not evidence that changing an input would change the outcome.")
