@@ -171,14 +171,31 @@ if parsed is not None and res and res["key"] == src["key"]:
         arr = scored.assign(When=pd.to_datetime(scored["Arrival"], errors="coerce", format="%Y-%m-%d")).dropna(subset=["When"])
         if len(arr):
             arr["Month"] = arr["When"].dt.to_period("M").dt.to_timestamp()
-            show_chart(base_chart(alt.Chart(arr).mark_bar(stroke="#fff", strokeWidth=1).encode(
+            measure = st.segmented_control("Show", ["Reservations", "Room revenue"], default="Reservations",
+                                           key="batch_month_measure", label_visibility="collapsed")
+            if measure == "Room revenue":
+                data = arr.groupby(["Month", "Prediction"], as_index=False)["Stay value (EUR)"].sum()
+                data, _ = money_view(data, ["Stay value (EUR)"])
+                col = next(c for c in data.columns if c.startswith("Stay value"))
+                title = "Room revenue " + col[col.index("("):]
+                data = data.rename(columns={col: "Revenue"})
+                y = alt.Y("sum(Revenue):Q", title=title)
+                value_tip = alt.Tooltip("sum(Revenue):Q", title=title, format=",.0f")
+            else:
+                data = arr
+                y = alt.Y("count():Q", title="Reservations")
+                value_tip = alt.Tooltip("count():Q", title="Reservations")
+            show_chart(base_chart(alt.Chart(data).mark_bar(stroke="#fff", strokeWidth=1).encode(
                 x=alt.X("yearmonth(Month):O", title="Arrival month",
                         axis=alt.Axis(format="%b %y", formatType="time", labelAngle=0, labelOverlap=True)),
-                y=alt.Y("count():Q", title="Reservations"),
+                y=y,
                 color=alt.Color("Prediction:N", scale=OUTCOME, legend=alt.Legend(orient="top", title=None)),
                 order=alt.Order("Prediction:N"),
                 tooltip=[alt.Tooltip("yearmonth(Month):O", title="Arrival month", format="%B %Y"),
-                         "Prediction:N", alt.Tooltip("count():Q", title="Reservations")]).properties(height=300)))
+                         "Prediction:N", value_tip]).properties(height=300)))
+            if measure == "Room revenue":
+                st.caption("Room rate × nights by arrival month. The red part is the revenue flagged, not a forecast "
+                           "of lost revenue.")
         else:
             st.caption("Arrival dates need a year (template layout, or an arrival_date_year column) to be charted.")
     with right.container(key="card_dist", height="stretch"):
