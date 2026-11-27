@@ -6,7 +6,7 @@ from pathlib import Path
 
 import streamlit as st
 
-st.set_page_config(page_title="HotelSight – Reservation Cancellation Risk",
+st.set_page_config(page_title="HotelSight – Hotel Performance and Cancellation Risk",
                    page_icon=str(Path(__file__).resolve().parents[1] / "assets" / "logo_icon.svg"), layout="wide")
 
 from common import apply_style, currency_control, footer, sidebar_model_card   # noqa: E402  (after set_page_config)
@@ -15,14 +15,20 @@ pages = {
     "": [
         st.Page("views/home.py", title="Overview", icon=":material/space_dashboard:", default=True),
     ],
-    "Reservations": [
+    "Predict": [
         st.Page("views/predict.py", title="Check a reservation", icon=":material/event_available:"),
         st.Page("views/batch.py", title="Upload reservations", icon=":material/upload_file:"),
+    ],
+    "Analyse": [
+        st.Page("views/insights.py", title="Risk outlook", icon=":material/analytics:"),
+        st.Page("views/actions.py", title="Action list", icon=":material/checklist:"),
+        st.Page("views/performance_hotel.py", title="Hotel performance", icon=":material/trending_up:"),
+    ],
+    "Records": [
         st.Page("views/history.py", title="Prediction history", icon=":material/history:"),
     ],
-    "Model evidence": [
-        st.Page("views/comparison.py", title="Model comparison", icon=":material/leaderboard:"),
-        st.Page("views/performance.py", title="Test performance", icon=":material/fact_check:"),
+    "Model": [
+        st.Page("views/evaluation.py", title="Model evaluation", icon=":material/fact_check:"),
         st.Page("views/explanations.py", title="What drives predictions", icon=":material/insights:"),
     ],
     "About": [

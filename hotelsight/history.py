@@ -76,6 +76,15 @@ def delete_batch(batch_id: str) -> int:
         return con.execute("DELETE FROM predictions WHERE batch_id = ?", (batch_id,)).rowcount
 
 
+def delete_ids(ids) -> int:
+    """Delete individual saved predictions by their row id."""
+    ids = [int(i) for i in ids]
+    if not ids:
+        return 0
+    with _connect() as con:
+        return con.execute(f"DELETE FROM predictions WHERE id IN ({','.join('?' * len(ids))})", ids).rowcount
+
+
 def clear() -> int:
     with _connect() as con:
         return con.execute("DELETE FROM predictions").rowcount

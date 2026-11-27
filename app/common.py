@@ -202,6 +202,19 @@ hr { border-color: var(--line) !important; }
            padding: 10px 12px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
 .hs-note .hs-ico { color: var(--muted); font-size: 18px; }
 
+/* findings, alerts and recommendations */
+.hs-find p { margin: 4px 0 6px; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+.hs-find .hs-card-title .hs-ico { color: var(--accent); font-size: 19px; margin-right: 2px; }
+.hs-find.risk .hs-card-title .hs-ico { color: var(--coral); }
+.hs-find.good .hs-card-title .hs-ico { color: #15803D; }
+.hs-alerts { display: flex; flex-direction: column; gap: 8px; }
+.hs-alert { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: var(--ink-2); line-height: 1.5;
+            padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--subtle); }
+.hs-alert .hs-ico { font-size: 19px; color: var(--accent); }
+.hs-alert.risk .hs-ico { color: var(--coral); }
+.hs-alert.good .hs-ico { color: #15803D; }
+.hs-alert b { color: var(--ink); }
+
 /* pipeline flow (method page) */
 .hs-flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; margin: 6px 0 4px; }
 .hs-flow .node { flex: 1 1 96px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
@@ -393,6 +406,64 @@ def money(x: float, digits: int | None = None) -> str:
     return currency.fmt(x, currency_code(), _fx(), digits)
 
 
+@st.cache_data(show_spinner="Loading the booking history…")
+def booking_history() -> pd.DataFrame:
+    """The cleaned historical bookings for the performance views (read once per session)."""
+    from hotelsight import analytics
+    return analytics.load_bookings()
+
+
+def saved_predictions():
+    """(raw history with stay values, tidy insight frame) for the saved predictions, or (None, None) when empty."""
+    from hotelsight import history, insights
+    h = history.load()
+    if h.empty:
+        return None, None
+    h = history.with_stay(h)
+    data = insights.prepare(h, get_countries())
+    data["reference"], data["batch_id"], data["source"] = h["reference"], h["batch_id"], h["source"]
+    data["batch_name"], data["created_at"] = h["batch_name"], h["created_at"]
+    return h, data
+
+
+ALL_UPLOADS, ALL_YEARS, ALL_WEEKS = "All checks and uploads", "All years", "All weeks"
+DATA_HISTORY, DATA_CURRENT = "Booking history dataset", "Current predicted bookings"   # the two performance sources
+
+
+def prediction_filters(data: pd.DataFrame, key: str):
+    """The same filter bar on the risk pages: check or upload, arrival year and arrival week.
+
+    Returns (rows for the chosen upload and year, rows for the chosen week as well, chosen week or ALL_WEEKS).
+    Another page can open this one on a given upload by setting st.session_state[f"{key}_batch"] first."""
+    batches = (data.groupby("batch_id").agg(name=("batch_name", "first"), when=("created_at", "min"),
+                                            n=("reference", "size")).sort_values("when", ascending=False))
+    label = {b: f"{r['name']} · {r['when']:%d %b %Y %H:%M} · {r['n']:,} reservation{'s' * (r['n'] != 1)}"
+             for b, r in batches.iterrows()}
+    options = [ALL_UPLOADS] + list(batches.index)
+    if st.session_state.get(f"{key}_batch") not in options:
+        st.session_state.pop(f"{key}_batch", None)
+    with st.container(key=f"card_{key}_filters"):
+        c1, c2, c3 = st.columns([1.7, .8, 1.2])
+        pick = c1.selectbox("Check or upload", options, key=f"{key}_batch",
+                            format_func=lambda b: b if b == ALL_UPLOADS else label[b])
+        d = data if pick == ALL_UPLOADS else data[data["batch_id"] == pick]
+        years = sorted(int(y) for y in d["arrival"].dt.year.dropna().unique())
+        year = c2.selectbox("Arrival year", [ALL_YEARS] + years, key=f"{key}_year_{pick}")
+        if year != ALL_YEARS:
+            d = d[d["arrival"].dt.year == year]
+        weeks = [pd.Timestamp(w) for w in sorted(d["week"].dropna().unique())]
+        week = c3.selectbox("Arrival week", [ALL_WEEKS] + weeks, key=f"{key}_week_{pick}_{year}",
+                            format_func=lambda w: w if isinstance(w, str) else f"Week of {w:%d %b %Y}",
+                            help="Weeks run Monday to Sunday by arrival date.")
+    sel = d if week == ALL_WEEKS else d[d["week"] == week]
+    return d, sel, week
+
+
+def to_display(values_eur):
+    """Euro amounts (a number or a Series) converted to the display currency, for charts."""
+    return currency.convert(values_eur, currency_code(), _fx())
+
+
 _EURO_TEXT = re.compile(r"€([\d,]+(?:\.\d+)?)")
 
 
@@ -459,52 +530,6 @@ def base_chart(chart: alt.Chart) -> alt.Chart:
 def show_chart(chart):
     """Draw a finished chart at full width, without Streamlit's chart theme (base_chart sets the look)."""
     st.altair_chart(chart, width="stretch", theme=None)
-
-
-def arrivals_by_month(df: pd.DataFrame, arrival: str, value_eur: str, key: str, count_title: str = "Reservations",
-                      height: int = 300) -> bool:
-    """Monthly arrivals split by prediction, shown as a count or as room revenue (room rate × nights).
-
-    df needs a 'Prediction' column, an arrival date column (YYYY-MM-DD) and a stay value column in euros.
-    Returns False when no arrival date can be read, so the caller can explain why nothing is drawn."""
-    arr = df.assign(When=pd.to_datetime(df[arrival], errors="coerce", format="%Y-%m-%d")).dropna(subset=["When"])
-    if arr.empty:
-        return False
-    arr["Month"] = arr["When"].dt.to_period("M").dt.to_timestamp()
-    years = sorted(arr["When"].dt.year.unique().tolist())
-    c1, c2 = st.columns([2, 1], vertical_alignment="center")
-    with c1:
-        measure = st.segmented_control("Show", [count_title, "Room revenue"], default=count_title, key=key,
-                                       label_visibility="collapsed")
-    with c2:
-        year = st.selectbox("Arrival year", ["All years"] + years, key=f"{key}_year", label_visibility="collapsed",
-                            format_func=lambda y: y if y == "All years" else f"Arrivals in {y}")
-    if year != "All years":
-        arr = arr[arr["When"].dt.year == year]
-    if measure == "Room revenue":
-        data = arr.groupby(["Month", "Prediction"], as_index=False)[value_eur].sum()
-        code = currency_code()
-        data["Revenue"] = currency.convert(data[value_eur], code, _fx())
-        title = f"Room revenue ({code})"
-        y = alt.Y("sum(Revenue):Q", title=title)
-        value_tip = alt.Tooltip("sum(Revenue):Q", title=title, format=",.0f")
-    else:
-        data = arr
-        y = alt.Y("count():Q", title=count_title)
-        value_tip = alt.Tooltip("count():Q", title=count_title)
-    show_chart(base_chart(alt.Chart(data).mark_bar(stroke="#fff", strokeWidth=1).encode(
-        x=alt.X("yearmonth(Month):O", title="Arrival month", scale=alt.Scale(paddingOuter=0.8),
-                axis=alt.Axis(format="%b %Y", formatType="time", labelAngle=0, labelOverlap="greedy",
-                              labelSeparation=8)),
-        y=y,
-        color=alt.Color("Prediction:N", scale=OUTCOME, legend=alt.Legend(orient="top", title=None)),
-        order=alt.Order("Prediction:N"),
-        tooltip=[alt.Tooltip("yearmonth(Month):O", title="Arrival month", format="%B %Y"),
-                 "Prediction:N", value_tip]).properties(height=height)))
-    if measure == "Room revenue":
-        st.caption("Room rate × nights by arrival month. The red part is the revenue flagged, not a forecast "
-                   "of lost revenue.")
-    return True
 
 
 def diverging_legend(title: str = "", totals: bool = False):

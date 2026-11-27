@@ -2,9 +2,29 @@
 
 Afiq Fakhri bin Yusoff · Bachelor of Information System (Hons.) Intelligent System Engineering · UiTM
 
-HotelSight is an **experimental prototype evaluated on historical hotel records**. A hotel manager enters a
-booking and gets a cancellation probability, a classification at the 0.50 threshold, and a SHAP explanation.
-It is **not** a validated live forecasting system and has **not** been evaluated on Malaysian hotels.
+HotelSight is an **experimental prototype evaluated on historical hotel records**. A hotel manager checks one
+booking or uploads a file and gets a cancellation probability, a classification at the 0.50 threshold, a SHAP
+explanation and a suggested action. The dashboard also analyses the risk of the saved predictions, lists which
+guests to contact, and shows hotel performance from the booking history dataset or from the current predicted
+bookings. It is **not** a validated live forecasting system and has **not** been evaluated on Malaysian hotels.
+
+## Dashboard pages
+
+| Group | Page | Purpose |
+|---|---|---|
+| | **Overview** | Hotel condition at a glance (booking history dataset or current predicted bookings), reservations that need attention, highlights |
+| Predict | **Check a reservation** | Score one booking, see the reasons (SHAP), a suggested action and a what-if test |
+| | **Upload reservations** | Score a whole Excel/CSV file and download the results |
+| Analyse | **Risk outlook** | Weekly and monthly risk of the saved predictions, where it comes from, risk bands, reasons and actions |
+| | **Action list** | Which guests to contact first and what to suggest, with Excel/CSV export |
+| | **Hotel performance** | Room revenue, ADR, rooms sold, pickup, cancellations, channels and findings, from the booking history dataset or the current predicted bookings, plus the model's value on past bookings |
+| Records | **Prediction history** | Saved predictions (search, inputs, export, delete) and their accuracy once outcomes are known |
+| Model | **Model evaluation** | Sealed test results, model selection and sensitivity checks |
+| | **What drives predictions** | Global SHAP importance |
+| About | **Method & limitations** | How to use it, method, limitations, deployed model and glossary |
+
+Occupancy rate, RevPAR and available rooms are not shown, because the dataset does not include each hotel's
+number of rooms.
 
 ## The model and its results (one experiment only)
 
@@ -14,9 +34,12 @@ selected model is XGBoost configuration 2. Every number shown in the dashboard c
 
 | Selected model: XGBoost | F1 | Accuracy | Precision | Recall | ROC AUC |
 |---|---|---|---|---|---|
-| Validation (17,881 rows, repeated records) | 0.8029 | 0.8516 | 0.7912 | 0.8149 | 0.9302 |
-| **Test, repeated records (17,882 rows)** | **0.8102** | **0.8570** | 0.7975 | 0.8234 | 0.9317 |
 | **Test, one copy per record (13,085 rows)** | **0.6995** | 0.8307 | 0.6840 | 0.7157 | 0.8906 |
+| **Test, repeated records (17,882 rows)** | **0.8102** | **0.8570** | 0.7975 | 0.8234 | 0.9317 |
+| Validation (17,881 rows, repeated records) | 0.8029 | 0.8516 | 0.7912 | 0.8149 | 0.9302 |
+
+The one-copy result is the more cautious estimate. On those 13,085 held-out test bookings, the model flagged
+76.5% of the room revenue that was later lost to cancellations (€1.33M of €1.74M) before the guests cancelled.
 
 The 20-input sensitivity model, without ADR, deposit type, parking and special requests, scores 0.7353
 (repeated records) and 0.6024 (one copy).
@@ -57,12 +80,12 @@ dashboard with `Ctrl+C` in the terminal. Run the tests with:
 
 | Path | Contents |
 |---|---|
-| `app/` | Streamlit dashboard: `streamlit_app.py` plus 8 pages in `app/views/` |
-| `hotelsight/` | `contract.py` (24-input contract, labels, date rules, validation), `pipeline.py` (hash-checked model loading, prediction, SHAP), `results.py` (read-only access to the frozen results) |
+| `app/` | Streamlit dashboard: `streamlit_app.py`, 10 pages in `app/views/`, shared helpers in `common.py` and the model evidence views in `evidence.py` |
+| `hotelsight/` | `contract.py` (24-input contract, labels, date rules, validation), `pipeline.py` (hash-checked model loading, prediction, SHAP), `results.py` (read-only access to the frozen results), `insights.py` (risk analysis and suggested actions for saved predictions), `analytics.py` (hotel performance from the booking history dataset or the current predicted bookings, and the model's value on past bookings), `history.py`, `batch.py`, `currency.py` |
 | `experiment/` | **Frozen controlled experiment, unchanged**: data, split membership, 4 preprocessors, selected models, 48 trial records, sealed test results, bootstrap, its own README and reproduction scripts, and the audit of earlier runs |
 | `assets/` | Derived dashboard assets: country names, training input ranges, example bookings, global SHAP. Rebuild with `scripts/build_assets.py` |
 | `scripts/` | `verify_experiment.py`, `check_date_conventions.py`, `build_assets.py`, `launch_check.py` |
-| `tests/` | 56 automated tests (pytest) |
+| `tests/` | 79 automated tests (pytest) |
 | `docs/` | `THESIS_AMENDMENTS.md/.docx` (Chapter 3 and 4 changes), `TEST_REPORT.md`, `verification_report.json`, `date_conventions.json`, `screenshots/` |
 | `archive/` | Earlier exploratory runs (superseded, **not used by the dashboard**) |
 | `requirements.txt` / `requirements-top.txt` | Exact versions, full set and top-level packages |
@@ -112,7 +135,10 @@ both verified on 100% of rows (`docs/date_conventions.json`):
 - **Probabilities are not calibrated.** Class weighting raises them, so use them to rank risk.
 - **Overfitting gap:** train F1 0.95 vs validation F1 0.80.
 - **Limited tuning:** three fixed configurations per model.
-- **SHAP shows associations, not causes.**
+- **SHAP shows associations, not causes.** Suggested actions are rule-based, from each booking's main reason.
+- **No room capacity in the dataset,** so occupancy rate and RevPAR are not shown.
+- **Expected results are not real results.** The "current predicted bookings" view treats flagged reservations as
+  expected cancellations.
 - **Not yet done:** usability testing with participants.
 
 ## Sources

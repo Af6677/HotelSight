@@ -13,7 +13,7 @@ import streamlit as st
 
 from common import (CANCEL, STAY, convert_euro_text, diverging_legend, euros, friendly, get_countries, get_model,
                     get_ranges, icon, load, money, page_header, pct, section, show_chart, step, svg_img, waterfall_chart)
-from hotelsight import history
+from hotelsight import history, insights
 from hotelsight.waterfall import waterfall_steps
 from hotelsight.contract import (CATEGORY_LABELS, DATE_DERIVED, MODEL_FIELDS, derive_from_dates, display_value,
                                  validate_dates, validate_record)
@@ -26,7 +26,7 @@ YES_NO = ["Yes", "No"]
 BLANK = "Blank reservation"
 DATE_FORMAT = "DD/MM/YYYY"
 
-page_header("Reservations", "Check a reservation",
+page_header("Predict", "Check a reservation",
             "Enter a reservation as it is currently recorded to see how likely it is to cancel, and why.")
 
 # ------------------------------------------------------------------ form state
@@ -273,6 +273,10 @@ with result_col, st.container(key="result_panel"):
                     f'<ul class="hs-drivers">{items(up)}</ul>'
                     f'<div class="hs-list-title down">{icon("arrow_downward")}Lowering the risk</div>'
                     f'<ul class="hs-drivers">{items(down)}</ul>')
+            if prob >= model.threshold and up:
+                action = insights.suggested_action(f"{friendly(up[0])}: {saved_value(rec, up[0])}")
+                st.html(f'<div class="hs-alert risk">{icon("lightbulb")}<span><b>Suggested action.</b> '
+                        f'{escape(action)}</span></div>')
 
         with st.container(key="card_stay"):
             st.html('<div class="hs-card-title">Stay details</div>' + stay_summary(res))
@@ -315,6 +319,33 @@ if res:
                 st.caption(f"Held-out test reservation, CSV row {ex['source_csv_row']:,}.")
             else:
                 st.caption("The example's inputs were edited, so there is no saved prediction to compare with.")
+
+    section("What if…", "Change one detail and see how the score moves")
+    WHATIF = ["deposit_type", "total_of_special_requests", "required_car_parking_spaces", "market_segment",
+              "customer_type", "meal", "lead_time", "adr"]
+    with st.container(key="card_whatif"):
+        c1, c2, c3 = st.columns([1.2, 1.2, 1.3], vertical_alignment="bottom")
+        field = c1.selectbox("Detail to change", WHATIF, format_func=lambda f: friendly(f).split(" (")[0],
+                             key="wi_field")
+        cur = rec[field]
+        if field in model.categories:
+            opts = model.categories[field]
+            new = c2.selectbox("New value", opts, index=opts.index(str(cur)) if str(cur) in opts else 0,
+                               format_func=lambda v: display_value(field, v, countries), key=f"wi_val_{field}")
+        else:
+            new = c2.number_input("New value", value=float(cur), min_value=0.0, step=5.0 if field == "adr" else 1.0,
+                                  key=f"wi_val_{field}")
+        changed = {**rec, field: new}
+        check = validate_record(changed, ranges, model.categories)
+        if check.ok:
+            p2 = float(model.predict_proba(model.frame(changed))[0])
+            c3.metric("Score after the change", pct(p2), f"{(p2 - prob) * 100:+.1f} pts vs now", delta_color="inverse",
+                      border=True)
+        else:
+            c3.error(" ".join(check.errors), icon=":material/error:")
+        st.caption(f"Now: {display_value(field, cur, countries)} → {pct(prob)}. This shows how the model's score "
+                   "responds to one change, which helps compare options such as asking for a deposit. It is not proof "
+                   "that the change would prevent a cancellation.")
 
     with st.expander("Model inputs sent to the model (24, exact contract order)", icon=":material/table_view:"):
         rows = [{"Model input": f, "Description": friendly(f), "Value": rec[f],

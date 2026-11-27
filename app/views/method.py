@@ -14,6 +14,15 @@ page_header("About", "Method & limitations",
             "HotelSight is an experimental prototype evaluated on historical hotel records. It is a Final Year "
             "Project demonstration, not a validated live forecasting system.")
 
+section("How to use HotelSight")
+st.html('<div class="hs-steps">'
+        '<div><span><b>Score reservations</b>Check one reservation, or upload a file of upcoming arrivals. Each one gets '
+        'a cancellation probability and its main reasons.</span></div>'
+        '<div><span><b>Review the outlook and act</b>The risk outlook shows when and where the risk falls. The action '
+        'list says which guests to contact first and what to suggest.</span></div>'
+        '<div><span><b>Learn from the past and check accuracy</b>Hotel performance shows revenue, demand and '
+        'cancellation patterns. Prediction history shows how accurate past predictions were.</span></div></div>')
+
 section("How a prediction is made")
 FLOW = [("Booking form", "3 dates + 18 inputs"), ("Validation", "contract.py"),
         ("Feature construction", "experiment/features.py"), ("Saved preprocessor", "SHA-256 checked"),
@@ -32,8 +41,35 @@ k[2].metric("Train / validation / test", "70 / 15 / 15",
 k[3].metric("Model candidates", "48 fits", "12 per arm", help="4 models × 3 configurations × 4 experiment arms",
             delta_color="off", delta_arrow="off", border=True)
 
-tab_method, tab_limits, tab_model = st.tabs([":material/science: Method", ":material/warning: Limitations",
-                                             ":material/memory: Deployed model"])
+tab_method, tab_limits, tab_model, tab_terms = st.tabs([":material/science: Method", ":material/warning: Limitations",
+                                                        ":material/memory: Deployed model", ":material/menu_book: Glossary"])
+
+TERMS = [
+    ("Cancellation probability", "The model's score for one reservation, from 0% to 100%. Use it to rank reservations "
+     "by risk. It is not an exact chance, because the model gives extra weight to cancelled bookings."),
+    ("Likely to cancel (flagged)", "A reservation with a probability of 50% or more."),
+    ("Risk bands", "Low (below 30%), Watch (30–50%), High (50–70%) and Very high (70% and above)."),
+    ("Revenue flagged", "Room rate × nights of the reservations flagged as likely to cancel. It is revenue at risk, "
+     "not a forecast of money lost, because some flagged guests still arrive and rooms can be resold."),
+    ("Expected arrivals", "Reservations not flagged as likely to cancel. A planning guide, not a guarantee."),
+    ("Room revenue", "Room rate × nights of the historical bookings that stayed (checked out)."),
+    ("Average daily rate (ADR)", "Room revenue divided by rooms sold."),
+    ("Rooms sold", "Room nights of the historical bookings that stayed."),
+    ("Revenue lost to cancellations", "Room rate × nights of the historical bookings that were cancelled or did not "
+     "show up."),
+    ("Booking pickup", "Bookings made in each month, by the date the booking was made."),
+    ("Main reason", "The input that raised this reservation's score the most (SHAP). An association, not a cause."),
+    ("One copy and repeated records", "The dataset has identical rows and no booking ID. One copy counts each "
+     "identical record once and is the more cautious result. Repeated records count every row."),
+    ("Not available: occupancy, RevPAR, available rooms", "These need each hotel's number of rooms, which the "
+     "dataset does not include, so they are not shown."),
+]
+with tab_terms:
+    cols = st.columns(2, gap="small")
+    for i, (term, meaning) in enumerate(TERMS):
+        with cols[i % 2].container(key=f"card_term{i}"):
+            st.markdown(f"**{term}**")
+            st.caption(meaning)
 
 with tab_method:
     left, right = st.columns(2, gap="medium")
@@ -95,6 +131,10 @@ LIMITS = [
      "This means it fits the training data more closely than new data."),
     ("SHAP shows links, not causes", "SHAP explains how this model behaves. It does not prove that changing an input "
      "would stop a cancellation."),
+    ("No room capacity", "The dataset does not say how many rooms each hotel has, so occupancy rate, RevPAR and "
+     "available rooms cannot be calculated. A hotel using HotelSight would add its own room count."),
+    ("Not connected to a booking system", "Reservations are entered or uploaded by hand. A live version would read "
+     "them from the hotel's property management system and retrain the model regularly."),
     ("Dataset rules copied on purpose", "The dataset counts week numbers the way SQL Server does, with weeks starting "
      "on Sunday. Its \"weekend nights\" are nights that start on a Sunday or Monday. The dashboard uses the same rules "
      "so its inputs match the training data."),

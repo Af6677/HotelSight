@@ -5,13 +5,13 @@ _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1]))
 import altair as alt
 import streamlit as st
 
-from common import (INK, STAY, base_chart, diverging_bars, diverging_legend, friendly, get_countries, kpis, load,
+from common import (INK, STAY, base_chart, diverging_bars, diverging_legend, friendly, get_countries, kpis, load, nav_link,
                     page_header,
                     show_chart)
 from hotelsight.contract import CATEGORY_LABELS
 
 summ = load("shap_summary")
-page_header("Model evidence", "What drives predictions",
+page_header("Model", "What drives predictions",
             f"SHAP values from the deployed model on {summ['rows_repeated']:,} held-out test rows, in log-odds of "
             "cancellation. These are associations, not causes.")
 
@@ -66,3 +66,5 @@ with right.container(key="card_byvalue", height="stretch"):
     st.caption("Categories show the 12 most frequent values; numbers are split into equal-count bands. "
                "These are associations learned from historical records (for example, parking requests go with "
                "lower predicted risk). They are not evidence that changing an input would change the outcome.")
+
+nav_link("views/predict.py", "See the reasons for one reservation in Check a reservation", ":material/event_available:")

@@ -5,8 +5,9 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 APP = Path(__file__).resolve().parents[1] / "app"
-PAGES = ["streamlit_app.py", "views/home.py", "views/predict.py", "views/batch.py", "views/history.py",
-         "views/comparison.py", "views/performance.py", "views/explanations.py", "views/method.py"]
+PAGES = ["streamlit_app.py", "views/home.py", "views/predict.py", "views/batch.py", "views/insights.py",
+         "views/actions.py", "views/performance_hotel.py", "views/history.py", "views/evaluation.py",
+         "views/explanations.py", "views/method.py"]
 
 
 @pytest.mark.parametrize("page", PAGES)
@@ -43,7 +44,8 @@ def test_batch_sample_is_scored_and_saved_to_history():
     assert len(history.load()) == before + 200
     hist = AppTest.from_file(str(APP / "views/history.py"), default_timeout=180).run()
     assert not hist.exception and not hist.error
-    assert hist.metric[0].label == "Predictions shown"
+    assert hist.metric[0].label == "With a known outcome"         # earlier tests may add saved outcomes too
+    assert int(hist.metric[0].value.replace(",", "")) >= 200
 
 
 def _saved(reference, arrival, probability=0.9):
@@ -51,13 +53,14 @@ def _saved(reference, arrival, probability=0.9):
             "top_raising": "Deposit type: No deposit", "record": {"adr": 100.0, "stays_in_week_nights": 2}}
 
 
-def test_overview_lists_flagged_reservations_when_none_are_upcoming(tmp_path, monkeypatch):
+def test_overview_falls_back_to_the_latest_weeks_when_none_are_upcoming(tmp_path, monkeypatch):
     from hotelsight import history
     monkeypatch.setenv("HOTELSIGHT_HISTORY_DB", str(tmp_path / "h.db"))
     history.save([_saved("PAST-1", "2017-03-01")], "single", "Single prediction", 0.5, "abc")
     at = AppTest.from_file(str(APP / "views/home.py"), default_timeout=180).run()
-    assert not at.exception
-    assert next(m for m in at.metric if m.label == "Upcoming at risk").value == "0"
+    assert not at.exception, [e.value for e in at.exception]
+    assert next(m for m in at.metric if m.label == "Guests to contact").value == "1"
+    assert any("No upcoming arrivals" in c.value for c in at.caption)
     assert list(at.dataframe[0].value["Reference"]) == ["PAST-1"]
 
 
@@ -68,8 +71,26 @@ def test_overview_puts_the_soonest_upcoming_arrival_first(tmp_path, monkeypatch)
                  "batch", "Upload", 0.5, "abc")
     at = AppTest.from_file(str(APP / "views/home.py"), default_timeout=180).run()
     assert not at.exception
-    assert next(m for m in at.metric if m.label == "Upcoming at risk").value == "2"
+    assert next(m for m in at.metric if m.label == "Arrivals").value == "2"
     assert list(at.dataframe[0].value["Reference"]) == ["SOON", "LATER"]
+
+
+def test_overview_shows_the_latest_month_of_hotel_performance():
+    at = AppTest.from_file(str(APP / "views/home.py"), default_timeout=180).run()
+    assert not at.exception
+    assert next(m for m in at.metric if m.label == "Room revenue").delta.endswith("vs last year")
+
+
+def test_predict_what_if_changes_the_score():
+    at = AppTest.from_file(str(APP / "views/predict.py"), default_timeout=180).run()
+    at.selectbox(key="example_choice").select("High risk – non-refundable, long lead time").run()
+    at.button[0].click().run()
+    before = at.metric[0].value
+    at.selectbox(key="wi_field").select("deposit_type").run()
+    at.selectbox(key="wi_val_deposit_type").select("No Deposit").run()
+    assert not at.exception, [e.value for e in at.exception]
+    after = next(m for m in at.metric if m.label == "Score after the change")
+    assert after.value != before and "pts vs now" in after.delta
 
 
 def test_predict_rejects_invalid_booking():

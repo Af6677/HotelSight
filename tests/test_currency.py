@@ -79,8 +79,7 @@ def test_overview_amounts_follow_the_chosen_currency(tmp_path, monkeypatch):
     myr.run()
     assert not myr.exception, [e.value for e in myr.exception]
     assert next(m for m in myr.metric if m.label == "Revenue flagged").value == f"RM {200 * rate:,.2f}"
-    assert list(myr.dataframe[0].value["Main reason"]) == [f"Average daily rate: RM {100 * rate:,.2f}"]
-    assert "Stay value" in myr.dataframe[0].value.columns          # converted copy, renamed only for (EUR) columns
+    assert myr.dataframe[0].value["Stay value"].iloc[0] == pytest.approx(200 * rate)   # converted copy for display
 
 
 def test_reservation_result_follows_the_chosen_currency(tmp_path, monkeypatch):
@@ -107,8 +106,13 @@ def test_batch_revenue_follows_the_chosen_currency_and_downloads_stay_in_euros(t
         at.button(key="use_sample").click().run()
         at.button(key="run_batch").click().run()
         assert not at.exception, [e.value for e in at.exception]
-        runs[code] = next(m for m in at.metric if m.label == "Revenue flagged").value
         runs[code + "_df"] = at.session_state["batch_result"]["results"]
+        outlook = AppTest.from_file(str(APP / "views/insights.py"), default_timeout=180)   # revenue lives here now
+        outlook.session_state["currency"] = code
+        outlook.session_state["ins_batch"] = at.session_state["batch_result"]["batch_id"]
+        outlook.run()
+        assert not outlook.exception, [e.value for e in outlook.exception]
+        runs[code] = next(m for m in outlook.metric if m.label == "Revenue flagged").value
     eur = float(runs["EUR"].replace("€", "").replace(",", ""))
     myr = float(runs["MYR"].replace("RM", "").replace(",", ""))
     assert myr == pytest.approx(eur * rate, rel=2e-3)

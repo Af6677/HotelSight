@@ -4,12 +4,11 @@ _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1]))
 
 import hashlib
 
-import altair as alt
 import pandas as pd
 import streamlit as st
 
-from common import (INK, OUTCOME, arrivals_by_month, base_chart, convert_euro_text, euros, get_countries, get_model,
-                    get_ranges, kpis, load, money_view, page_header, pct, section, show_chart, verdict_colours)
+from common import (convert_euro_text, get_countries, get_model, get_ranges, kpis, load, money_view, page_header, pct,
+                    section, verdict_colours)
 from hotelsight import batch, history
 
 model = get_model()
@@ -19,7 +18,7 @@ examples = load("examples")
 ss = st.session_state
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-page_header("Reservations", "Upload reservations",
+page_header("Predict", "Upload reservations",
             f"Score up to {batch.MAX_ROWS:,} reservations from an Excel or CSV file. Each row is checked with the same "
             "rules as the single reservation form.")
 
@@ -129,7 +128,8 @@ if parsed is not None:
                   "record": records[x["Row"]].record} for _, x in scored.iterrows()],
                 source="batch", batch_name=name.strip() or src["name"], threshold=model.threshold,
                 model_sha256=model.record["model_sha256"])
-        ss.batch_result = {"key": src["key"], "results": results, "name": name, "saved": batch_id is not None}
+        ss.batch_result = {"key": src["key"], "results": results, "name": name, "saved": batch_id is not None,
+                           "batch_id": batch_id}
 
 # ------------------------------------------------------------------ results
 res = ss.get("batch_result")
@@ -142,18 +142,14 @@ if parsed is not None and res and res["key"] == src["key"]:
     if res["saved"]:
         st.success(f"Saved {len(scored):,} predictions to the history. Open **Prediction history** in the sidebar "
                    "to review them later.", icon=":material/history:")
-    k = kpis("batch", ["fact_check", "event_busy", "bed", "payments"], {1: "coral", 2: "coral", 3: "coral"})
+    k = kpis("batch", ["fact_check", "event_busy", "error"], {1: "coral", 2: "slate"})
     k[0].metric("Reservations scored", f"{len(scored):,}",
                 f"{len(df) - len(scored):,} not scored" if len(df) > len(scored) else "all rows scored",
                 delta_color="off", delta_arrow="off", border=True)
     k[1].metric("Likely to cancel", f"{n_cancel:,}", f"{pct(n_cancel / max(len(scored), 1))} of scored",
                 delta_color="off", delta_arrow="off", border=True)
-    k[2].metric("Nights flagged", f"{int(flagged['Nights'].sum()):,}",
-                f"of {int(scored['Nights'].sum()):,} room nights", delta_color="off", delta_arrow="off", border=True)
-    k[3].metric("Revenue flagged", euros(flagged["Stay value (EUR)"].sum()),
-                f"of {euros(scored['Stay value (EUR)'].sum())} booked", delta_color="off", delta_arrow="off",
-                border=True, help="Room rate × nights for the reservations flagged as likely to cancel, shown in the "
-                      "currency chosen in the sidebar. Downloaded files stay in EUR.")
+    k[2].metric("Rows not scored", f"{len(df) - len(scored):,}", "see the Problems column",
+                delta_color="off", delta_arrow="off", border=True)
 
     if "Actual outcome" in scored and (scored["Actual outcome"] != "").any():
         known = scored[scored["Actual outcome"] != ""]
@@ -163,42 +159,26 @@ if parsed is not None and res and res["key"] == src["key"]:
         st.info(f"This file includes recorded outcomes for {len(known):,} reservations: the predictions agree with "
                 f"{pct(float((y == p).mean()))} of them (F1 {f1:.3f}): {int((y == p).sum()):,} correct and "
                 f"{int((y != p).sum()):,} wrong. See the Correct? column below. Small files give noisy figures; the "
-                "sealed test results are on the Test performance page.", icon=":material/fact_check:")
+                "sealed test results are on the Model evaluation page.", icon=":material/fact_check:")
 
-    left, right = st.columns([1.35, 1], gap="medium")
-    with left.container(key="card_arrivals", height="stretch"):
-        st.html('<div class="hs-card-title">Arrivals by month</div>')
-        if not arrivals_by_month(scored, "Arrival", "Stay value (EUR)", "batch_month_measure"):
-            st.caption("Arrival dates need a year (template layout, or an arrival_date_year column) to be charted.")
-    with right.container(key="card_dist", height="stretch"):
-        st.html('<div class="hs-card-title">Spread of cancellation probabilities</div>')
-        hist = alt.Chart(scored).mark_bar(cornerRadiusTopLeft=3, cornerRadiusTopRight=3).encode(
-            x=alt.X("Cancellation probability:Q", bin=alt.Bin(extent=[0, 1], step=0.05),
-                    axis=alt.Axis(format="%", values=[0, .2, .4, .6, .8, 1]), title="Cancellation probability"),
-            y=alt.Y("count():Q", title="Reservations"),
-            color=alt.Color("Prediction:N", scale=OUTCOME, legend=alt.Legend(orient="top", title=None)),
-            tooltip=[alt.Tooltip("count():Q", title="Reservations"), "Prediction:N"])
-        rule = alt.Chart(pd.DataFrame({"x": [model.threshold]})).mark_rule(color=INK, strokeDash=[4, 3]).encode(x="x:Q")
-        show_chart(base_chart((hist + rule).properties(height=260)))
-        st.caption(f"Dashed line: the {model.threshold:.2f} decision threshold.")
+    if res["saved"]:
+        with st.container(key="card_batch_next"):
+            st.html('<div class="hs-card-title">Next steps for this upload</div>')
+            c1, c2, _ = st.columns([1, 1, 1.2])
+            if c1.button("Analyse this upload", icon=":material/analytics:", key="go_outlook", width="stretch"):
+                ss["ins_batch"] = res["batch_id"]
+                st.switch_page("views/insights.py")
+            if c2.button("Open its action list", icon=":material/checklist:", key="go_actions", width="stretch"):
+                ss["act_batch"] = res["batch_id"]
+                st.switch_page("views/actions.py")
+            st.caption("The risk outlook shows when and where the risk falls and how much revenue is flagged. The "
+                       "action list shows which guests to contact first.")
 
     money = {"Hotel": st.column_config.TextColumn("Property"),
              "Cancellation probability": st.column_config.ProgressColumn("Probability", format="%.1f%%", min_value=0,
                                                                          max_value=100),
              "Lead time (days)": st.column_config.NumberColumn(format="%d"),
              "Nights": st.column_config.NumberColumn(format="%d")}
-    with st.container(key="card_top"):
-        st.html('<div class="hs-card-title">Highest-risk reservations</div>')
-        top = scored.nlargest(10, "Cancellation probability")
-        top_view, top_money = money_view(
-            top[["Reference", "Hotel", "Arrival", "Nights", "Stay value (EUR)", "Cancellation probability",
-                 "Main factor raising risk"]].assign(
-                **{"Cancellation probability": top["Cancellation probability"] * 100,
-                   "Main factor raising risk": top["Main factor raising risk"].map(convert_euro_text)}),
-            ["Stay value (EUR)"])
-        st.dataframe(top_view, hide_index=True, width="stretch",
-                     column_config={**money, **top_money, "Cancellation probability": st.column_config.ProgressColumn(
-                         "Probability", format="%.2f%%", min_value=0, max_value=100)})
 
     section("All rows", "Filter, then download")
     views = ["All rows", "Likely to cancel", "Likely to stay", "Not scored"]
