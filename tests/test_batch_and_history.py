@@ -98,3 +98,17 @@ def test_history_save_load_delete(tmp_path, monkeypatch):
     assert json.loads(h["inputs_json"][0]) == {"adr": 95.0}
     assert history.delete_batch(a) == 2 and len(history.load()) == 1
     assert history.clear() == 1 and history.load().empty
+
+
+def test_demo_upcoming_arrivals_only_move_the_dates(model):
+    today = date(2026, 11, 28)
+    demo, real = batch.sample_upcoming_bookings(200, today=today), batch.sample_test_bookings(200, seed=7)
+    assert "is_canceled" not in demo and demo["booking_reference"].str.startswith("DEMO-").all()
+    nights = lambda d: d.stays_in_weekend_nights.astype(int) + d.stays_in_week_nights.astype(int)
+    assert (nights(demo) == nights(real)).all()                       # same stay length, only the dates move
+    keep = ["lead_time", "adr", "deposit_type", "hotel", "adults", "market_segment"]
+    assert demo[keep].equals(real[keep])
+    parsed, res = run(model, demo)
+    assert len(parsed.valid) == 200 and not any(r.errors for r in parsed.rows)
+    arrivals = pd.to_datetime(res["Arrival"])
+    assert arrivals.min() > pd.Timestamp(today) and arrivals.max() <= pd.Timestamp(today) + pd.Timedelta(weeks=8)

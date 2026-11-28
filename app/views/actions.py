@@ -5,7 +5,7 @@ _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1]))
 import pandas as pd
 import streamlit as st
 
-from common import (convert_euro_text, dash, euros, kpis, money_view, page_header, prediction_filters,
+from common import (data_stamp, convert_euro_text, dash, euros, kpis, money_view, page_header, prediction_filters,
                     saved_predictions)
 from hotelsight import batch, insights
 
@@ -15,6 +15,7 @@ off = {"delta_color": "off", "delta_arrow": "off", "border": True}
 page_header("Analyse", "Action list",
             "The reservations flagged as likely to cancel, soonest arrival first, each with the main reason and a "
             "suggested action for the reservations team.")
+data_stamp()
 
 h, data = saved_predictions()
 if data is None:

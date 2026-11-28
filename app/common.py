@@ -59,6 +59,8 @@ CSS = """
 .hs-page h1 { font-family: var(--heading); font-size: 26px; line-height: 1.25; font-weight: 700; letter-spacing: -.01em;
               color: var(--ink); margin: 0; padding: 0; }
 .hs-page p { margin: 4px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--muted); max-width: 800px; }
+.hs-stamp { display: flex; align-items: center; gap: 6px; margin: 6px 0 0; font-size: 12.5px; color: var(--muted); }
+.hs-stamp .hs-ico { font-size: 15px; }
 .hs-section { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 10px; margin: 18px 0 0; }
 .hs-section h2 { font-family: var(--heading); font-size: 17px; line-height: 1.4; font-weight: 700; letter-spacing: -.01em;
                  color: var(--ink); margin: 0; padding: 0; }
@@ -72,30 +74,40 @@ CSS = """
 .hs-step .hs-ico { color: var(--accent); font-size: 19px; }
 
 /* cards */
-[data-testid="stMetric"] { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-                           padding: 16px 18px; box-shadow: var(--shadow); position: relative; min-height: 110px;
+[data-testid="stMetric"] { background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+                           padding: 13px 15px; box-shadow: var(--shadow); position: relative; min-height: 98px;
                            box-sizing: border-box; }
 [data-testid="stMetric"] > div { padding: 0; }
 [data-testid="stMetricLabel"] p { font-size: 13px; font-weight: 500; color: var(--muted); }
 /* KPI rows (see kpis): every card the same height, with an icon tile that says what the number is */
 [class*="st-key-kpi"] [data-testid="stMetric"]::after { font-family: "Material Symbols Rounded"; font-size: 20px; line-height: 1;
-  font-feature-settings: "liga"; -webkit-font-smoothing: antialiased; position: absolute; top: 14px; right: 14px;
-  width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
-  color: var(--accent); background: var(--accent-soft); }
-[class*="st-key-kpi"] [data-testid="stMetricLabel"] { padding-right: 44px; }
-[data-testid="stMetricValue"] { font-family: var(--heading); font-size: 26px; line-height: 1.25; font-weight: 700;
-                                letter-spacing: -.02em; color: var(--ink); }
+  font-feature-settings: "liga"; -webkit-font-smoothing: antialiased; position: absolute; top: 12px; right: 12px;
+  width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  color: var(--accent); background: var(--accent-soft); font-size: 18px; }
+[class*="st-key-kpi"] [data-testid="stMetricLabel"] { padding-right: 40px; }
+[data-testid="stMetricValue"] { font-family: var(--heading); font-size: 24px; line-height: 1.25; font-weight: 700;
+                                letter-spacing: -.02em; color: var(--ink); font-variant-numeric: tabular-nums; }
 [data-testid="stMetricDelta"] { background: transparent !important; padding: 0 !important; color: var(--muted) !important;
                                 font-size: 12.5px; }
 [data-testid="stMetricDelta"] svg { display: none; }
 @media (max-width: 1180px) { [data-testid="stMetricValue"] { font-size: 21px; } }
 [data-testid="stForm"], [class*="st-key-card"] { background: var(--surface); border: 1px solid var(--line) !important;
-                                                 border-radius: 12px; box-shadow: var(--shadow); }
+                                                 border-radius: 10px; box-shadow: var(--shadow); }
 [data-testid="stForm"] { padding: 18px 20px 20px; }
-[class*="st-key-card"] { padding: 16px 18px; }
+[class*="st-key-card"] { padding: 14px 16px; }
 [class*="st-key-card"] [data-testid="stMetric"] { border: none; box-shadow: none; padding: 0; background: transparent; }
 .st-key-card_risk [data-testid="stMetricValue"] { font-size: 40px; line-height: 1.1; }
 [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] * { color: var(--muted) !important; opacity: 1 !important; }
+[data-testid="stCaptionContainer"] p { font-size: 12.5px; line-height: 1.5; }
+.hs-section { margin-top: 22px !important; }
+
+/* overview header: a compact title bar with actions, as in BI tools (no marketing banner) */
+.st-key-ov_actions [data-testid="stPageLink"] a { justify-content: center; padding: 6px 14px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+.st-key-ov_actions [data-testid="stPageLink"] a:hover { border-color: var(--accent); text-decoration: none; }
+.st-key-ov_primary [data-testid="stPageLink"] a { background: var(--accent); border-color: var(--accent); }
+.st-key-ov_primary [data-testid="stPageLink"] p, .st-key-ov_primary [data-testid="stIconMaterial"] { color: #fff !important; }
+.st-key-ov_primary [data-testid="stPageLink"] a:hover { background: var(--accent-dark); }
 [data-testid="stExpander"] details { background: var(--surface); border-color: var(--line); border-radius: 10px; }
 [data-testid="stTabs"] button p { font-weight: 600; }
 [data-testid="stDataFrame"] { border-radius: 8px; }
@@ -202,6 +214,31 @@ hr { border-color: var(--line) !important; }
            padding: 10px 12px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
 .hs-note .hs-ico { color: var(--muted); font-size: 18px; }
 
+/* the plain-language answer shown above a chart */
+.hs-take { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; line-height: 1.5; color: var(--ink);
+           background: var(--accent-soft); border-radius: 8px; padding: 8px 12px; margin: -2px 0 10px; }
+.hs-take .hs-ico { font-size: 18px; color: var(--accent); margin-top: 1px; }
+.hs-take.risk { background: var(--coral-soft); } .hs-take.risk .hs-ico { color: var(--coral); }
+.hs-take.good { background: #E7F6EC; } .hs-take.good .hs-ico { color: #15803D; }
+.hs-take b { font-weight: 700; }
+
+/* overview: today's summary strip and the explore tiles */
+.hs-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 6px 0 2px; }
+@media (max-width: 1000px) { .hs-summary { grid-template-columns: minmax(0, 1fr); } }
+.hs-sum { display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line);
+          border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; padding: 12px 14px; box-shadow: var(--shadow); }
+.hs-sum.risk { border-left-color: var(--coral); } .hs-sum.good { border-left-color: #15803D; }
+.hs-sum .hs-ico { font-size: 22px; color: var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 6px; }
+.hs-sum.risk .hs-ico { color: var(--coral); background: var(--coral-soft); }
+.hs-sum.good .hs-ico { color: #15803D; background: #E7F6EC; }
+.hs-sum small { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase;
+                letter-spacing: .04em; margin-bottom: 2px; }
+.hs-sum span { font-size: 14px; line-height: 1.45; color: var(--ink); }
+.hs-tile small { display: block; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.hs-tile b { display: block; font-family: var(--heading); font-size: 22px; color: var(--ink); line-height: 1.3;
+             font-variant-numeric: tabular-nums; }
+.hs-tile span { display: block; font-size: 13px; color: var(--ink-2); line-height: 1.45; margin: 2px 0 4px; }
+
 /* findings, alerts and recommendations */
 .hs-find p { margin: 4px 0 6px; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
 .hs-find .hs-card-title .hs-ico { color: var(--accent); font-size: 19px; margin-right: 2px; }
@@ -230,7 +267,9 @@ hr { border-color: var(--line) !important; }
 
 /* sidebar */
 [data-testid="stApp"]:not(:has([data-testid="stExpandSidebarButton"])) [data-testid="stSidebar"] {
-  min-width: 256px !important; max-width: 256px !important; }
+  width: 256px !important; min-width: 256px !important; max-width: 256px !important; }
+[data-testid="stSidebar"] > div, [data-testid="stSidebarContent"] { width: 100% !important; transform: none !important;
+  left: 0 !important; }
 [data-testid="stApp"]:has([data-testid="stExpandSidebarButton"]) [data-testid="stMainBlockContainer"] { padding-top: 3.75rem; }
 [data-testid="stSidebarContent"] { display: flex; flex-direction: column; }
 [data-testid="stSidebarUserContent"] { margin-top: auto; padding-bottom: 1rem; }
@@ -301,6 +340,17 @@ def page_header(area: str, title: str, subtitle: str):
     st.html(f'<div class="hs-page"><div class="hs-kicker">{escape(area)}</div><h1>{escape(title)}</h1><p>{subtitle}</p></div>')
 
 
+def data_stamp():
+    """One quiet line saying how fresh each data source is, shown under the title of the analysis pages."""
+    from hotelsight import history
+    d = booking_history()
+    h = history.load()
+    saved = (f"{len(h):,} saved predictions, last saved {h['created_at'].max():%d %b %Y, %H:%M}" if len(h)
+             else "No saved predictions yet")
+    st.html(f'<div class="hs-stamp">{icon("schedule")}<span>{saved} · Booking history '
+            f'{d["arrival"].min():%b %Y} – {d["arrival"].max():%b %Y}</span></div>')
+
+
 def section(title: str, note: str = ""):
     st.html(f'<div class="hs-section"><h2>{escape(title)}</h2><span>{escape(note)}</span></div>')
 
@@ -319,6 +369,31 @@ def kpis(key: str, icons: list[str], tones: dict | None = None):
                   f'{{content:"{name}";color:{fg};background:{bg}}}')
     st.html(f"<style>{rules}</style>")
     return st.container(key=f"kpi_{key}").columns(len(icons))
+
+
+def takeaway(text: str, kind: str = "info"):
+    """The one-line answer a chart gives, in plain words, shown above the chart. text may contain <b>."""
+    ic = {"info": "lightbulb", "risk": "warning", "good": "check_circle"}[kind]
+    st.html(f'<div class="hs-take {kind}">{icon(ic)}<span>{text}</span></div>')
+
+
+def money_short(x_eur) -> str:
+    """A short money figure for sentences, e.g. €1.97M or €45.3K, in the display currency."""
+    v = float(to_display(x_eur))
+    sym = euros(0).replace("0", "").replace(".", "").replace(",", "").strip()
+    if abs(v) >= 1e6:
+        return f"{sym}{v / 1e6:.2f}M"
+    return f"{sym}{v / 1e3:.1f}K" if abs(v) >= 1e4 else euros(x_eur)
+
+
+def chart_card(key: str, question: str, answer: str | None = None, kind: str = "info"):
+    """A card whose title is the question the chart answers, with the answer underneath. Use as a context manager."""
+    box = st.container(key=key, height="stretch")
+    with box:
+        st.html(f'<div class="hs-card-title">{escape(question)}</div>')
+        if answer:
+            takeaway(answer, kind)
+    return box
 
 
 def dash(values: pd.Series) -> pd.Series:

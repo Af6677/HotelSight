@@ -356,6 +356,31 @@ def template(examples: list, categories: dict) -> bytes:
                      "Notes": notes})
 
 
+def sample_upcoming_bookings(n: int = 200, seed: int = 7, today: date | None = None, weeks: int = 8) -> pd.DataFrame:
+    """Demonstration only: real held-out test bookings moved to arrive in the next `weeks` weeks, without an outcome.
+
+    Every booking detail is kept (lead time, nights, guests, rate, deposit and so on). Only the arrival date changes,
+    and the fields the dataset derives from it (year, month, day, week number, weekend and week nights) are worked out
+    again with the dataset's own rules. The real outcome is removed, because these arrivals have not happened yet."""
+    from datetime import timedelta
+    from .contract import dataset_weekend_nights, tsql_week_number
+    today = today or date.today()
+    out = sample_test_bookings(n, seed)
+    offsets = np.random.default_rng(seed).integers(1, weeks * 7 + 1, size=len(out))
+    for i, off in enumerate(offsets):
+        arrival = today + timedelta(days=int(off))
+        nights = int(float(out.at[i, "stays_in_weekend_nights"] or 0)) + int(float(out.at[i, "stays_in_week_nights"] or 0))
+        weekend, week = dataset_weekend_nights(arrival, arrival + timedelta(days=nights))
+        out.at[i, "arrival_date_year"] = str(arrival.year)
+        out.at[i, "arrival_date_month"] = MONTHS[arrival.month - 1]
+        out.at[i, "arrival_date_day_of_month"] = str(arrival.day)
+        out.at[i, "arrival_date_week_number"] = str(tsql_week_number(arrival))
+        out.at[i, "stays_in_weekend_nights"] = str(weekend)
+        out.at[i, "stays_in_week_nights"] = str(week)
+    out["booking_reference"] = out["booking_reference"].str.replace("CSV-", "DEMO-", regex=False)
+    return out.drop(columns=[c for c in ("is_canceled",) if c in out]).reset_index(drop=True)
+
+
 def sample_test_bookings(n: int = 200, seed: int = 42) -> pd.DataFrame:
     """Held-out test bookings in the dataset layout (with their real outcome), for demonstrations."""
     data = pd.read_csv(DATA, dtype=str, keep_default_na=False)

@@ -7,9 +7,9 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
-from common import (ALL_WEEKS, CANCEL, INK, OUTCOME, STAY, base_chart, currency_code, euros, kpis, money_view,
-                    nav_link, page_header, pct, prediction_filters, saved_predictions, section, show_chart,
-                    to_display)
+from common import (data_stamp, ALL_WEEKS, CANCEL, INK, OUTCOME, STAY, base_chart, chart_card, currency_code, euros, kpis,
+                    money_short, money_view, nav_link, page_header, pct, prediction_filters, saved_predictions,
+                    section, show_chart, to_display)
 from hotelsight import insights
 
 BAND_COLOURS = ["#2A78D6", "#9EC5F4", "#F09595", "#E34948"]
@@ -18,6 +18,7 @@ off = {"delta_color": "off", "delta_arrow": "off", "border": True}
 page_header("Analyse", "Risk outlook",
             "What the saved predictions say about the arrivals: how many are likely to cancel, when, where the risk "
             "comes from and what the hotel can do about it.")
+data_stamp()
 
 h, data = saved_predictions()
 if data is None:
@@ -64,39 +65,44 @@ k[4].metric("Room nights at risk", f"{int(s['nights_flagged']):,}", "nights of f
 # ------------------------------------------------------------------ over time
 w = insights.weekly(d)
 code = currency_code()
-with st.container(key="card_ins_weeks"):
+grain = st.session_state.get("ins_grain") or "Week"
+if grain == "Month":
+    w = w.assign(week=w["week"].dt.to_period("M").dt.to_timestamp()).groupby("week", as_index=False).sum(
+        numeric_only=True)
+    w["share_flagged"] = w["flagged"] / w["bookings"]
+answer = None
+if len(w):
+    peak = w.loc[w["flagged"].idxmax()]
+    when = f"{peak['week']:%B %Y}" if grain == "Month" else f"the week of {peak['week']:%d %b %Y}"
+    answer = (f"The most arrivals likely to cancel fall in <b>{when}</b>: <b>{int(peak['flagged'])} of "
+              f"{int(peak['bookings'])}</b> reservations ({money_short(peak['revenue_flagged'])} at risk).")
+with chart_card("card_ins_weeks", "When are the risky arrivals?", answer, "risk"):
     c1, c2 = st.columns([2.2, 1], vertical_alignment="center")
-    with c1:
-        st.html('<div class="hs-card-title">Outlook over time</div>')
-        view = st.segmented_control("Show", ["Arrivals", "Share likely to cancel", "Revenue flagged",
-                                             "Expected arrivals"], default="Arrivals", key="ins_week_view",
-                                    label_visibility="collapsed")
-    grain = c2.segmented_control("Period", ["Week", "Month"], default="Week", key="ins_grain",
-                                 label_visibility="collapsed")
+    view = c1.segmented_control("Show", ["Arrivals", "Share likely to cancel", "Revenue flagged",
+                                         "Expected arrivals"], default="Arrivals", key="ins_week_view",
+                                label_visibility="collapsed")
+    c2.segmented_control("Period", ["Week", "Month"], default="Week", key="ins_grain", label_visibility="collapsed")
     if grain == "Month":
-        w = w.assign(week=w["week"].dt.to_period("M").dt.to_timestamp()).groupby("week", as_index=False).sum(
-            numeric_only=True)
-        w["share_flagged"] = w["flagged"] / w["bookings"]
-        x = alt.X("yearmonth(week):O", title="Arrival month", scale=alt.Scale(paddingOuter=1),
+        x = alt.X("yearmonth(week):O", title=None, scale=alt.Scale(paddingOuter=1),
                   axis=alt.Axis(format="%b %Y", formatType="time", labelOverlap="greedy", labelAngle=0))
         tip = alt.Tooltip("week:T", title="Month", format="%B %Y")
     else:
-        x = alt.X("yearmonthdate(week):O", title="Arrival week (Monday)", scale=alt.Scale(paddingOuter=1),
+        x = alt.X("yearmonthdate(week):O", title="Week of arrival", scale=alt.Scale(paddingOuter=1),
                   axis=alt.Axis(format="%d %b %Y", formatType="time", labelOverlap="greedy", labelAngle=0,
                                 labelSeparation=10))
         tip = alt.Tooltip("week:T", title="Week of", format="%d %b %Y")
     if view == "Share likely to cancel":
-        chart = alt.Chart(w).mark_line(point=True, color=CANCEL, strokeWidth=2).encode(
+        chart = alt.Chart(w).mark_line(point=True, color=CANCEL, strokeWidth=2.5).encode(
             x=x, y=alt.Y("share_flagged:Q", title="Likely to cancel", axis=alt.Axis(format="%")),
             tooltip=[tip, alt.Tooltip("share_flagged:Q", title="Likely to cancel", format=".1%"),
                      alt.Tooltip("bookings:Q", title="Arrivals")])
     elif view == "Revenue flagged":
         chart = alt.Chart(w.assign(value=to_display(w["revenue_flagged"]))).mark_bar(color=CANCEL).encode(
-            x=x, y=alt.Y("value:Q", title=f"Revenue flagged ({code})"),
-            tooltip=[tip, alt.Tooltip("value:Q", title=f"Revenue flagged ({code})", format=",.0f")])
+            x=x, y=alt.Y("value:Q", title=f"Revenue at risk ({code})", axis=alt.Axis(format="~s")),
+            tooltip=[tip, alt.Tooltip("value:Q", title=f"Revenue at risk ({code})", format=",.0f")])
     elif view == "Expected arrivals":
         chart = alt.Chart(w).mark_bar(color=STAY).encode(
-            x=x, y=alt.Y("expected_arrivals:Q", title="Expected arrivals"),
+            x=x, y=alt.Y("expected_arrivals:Q", title="Guests expected to arrive"),
             tooltip=[tip, alt.Tooltip("expected_arrivals:Q", title="Expected arrivals"),
                      alt.Tooltip("bookings:Q", title="Booked")])
     else:
@@ -110,64 +116,73 @@ with st.container(key="card_ins_weeks"):
     if week != ALL_WEEKS and grain != "Month":
         chart = chart + alt.Chart(pd.DataFrame({"week": [week]})).mark_rule(
             color=INK, strokeDash=[4, 3], strokeWidth=1.5).encode(x="yearmonthdate(week):O")
-    show_chart(base_chart(chart.properties(height=260)))
-    st.caption("One bar per period with arrivals." + (" Dashed line: the selected week."
-                                                      if week != ALL_WEEKS and grain != "Month" else ""))
+    show_chart(base_chart(chart.properties(height=240)))
+    if week != ALL_WEEKS and grain != "Month":
+        st.caption("Dashed line: the week chosen in the filters.")
 
-# ------------------------------------------------------------------ where the risk comes from
+# ------------------------------------------------------------------ where the risk comes from, and how many to call
 left, right = st.columns([1.35, 1], gap="medium")
-with left.container(key="card_ins_where", height="stretch"):
-    st.html('<div class="hs-card-title">Where the risk comes from</div>')
-    by = st.selectbox("Break down by", list(insights.BREAKDOWNS), key="ins_by", label_visibility="collapsed")
+with left:
+    by = st.session_state.get("ins_by") or list(insights.BREAKDOWNS)[0]
     col = insights.BREAKDOWNS[by]
     b = insights.breakdown(sel, col, top=10 if col == "country" else None)
-    b = b.assign(revenue=to_display(b["revenue_flagged"]))
-    bars = alt.Chart(b).mark_bar(color=CANCEL, cornerRadiusEnd=3, height={"band": 0.6}).encode(
-        y=alt.Y("group:N", sort=list(b["group"]), title=None),
-        x=alt.X("share_flagged:Q", title="Share likely to cancel", axis=alt.Axis(format="%"),
-                scale=alt.Scale(domain=[0, 1])),
-        tooltip=[alt.Tooltip("group:N", title=by), alt.Tooltip("bookings:Q", title="Reservations"),
-                 alt.Tooltip("flagged:Q", title="Likely to cancel"),
-                 alt.Tooltip("share_flagged:Q", title="Share", format=".1%"),
-                 alt.Tooltip("revenue:Q", title=f"Revenue flagged ({code})", format=",.0f")])
-    labels = bars.mark_text(align="left", dx=4, color=INK, fontSize=12).encode(text=alt.Text("share_flagged:Q",
-                                                                                            format=".0%"))
-    show_chart(base_chart((bars + labels).properties(height=max(150, 34 * len(b)))))
-    st.caption("Hover a bar for the number of reservations and the revenue flagged. Small groups give unstable shares.")
+    big = b[b["bookings"] >= max(3, 0.05 * len(sel))]
+    answer = None
+    if len(big):
+        top = big.loc[big["share_flagged"].idxmax()]
+        answer = (f"By {by.lower().replace(' (top 10)', '')}, the riskiest group is <b>{top['group']}</b>: "
+                  f"<b>{top['share_flagged']:.0%}</b> likely to cancel ({int(top['flagged'])} of {int(top['bookings'])}).")
+    with chart_card("card_ins_where", "Which reservations are riskiest?", answer, "risk"):
+        st.selectbox("Compare by", list(insights.BREAKDOWNS), key="ins_by")
+        b = b.assign(revenue=to_display(b["revenue_flagged"]))
+        bars = alt.Chart(b).mark_bar(color=CANCEL, cornerRadiusEnd=3, height={"band": 0.6}).encode(
+            y=alt.Y("group:N", sort=list(b["group"]), title=None),
+            x=alt.X("share_flagged:Q", title="Likely to cancel", axis=alt.Axis(format="%"),
+                    scale=alt.Scale(domain=[0, 1])),
+            tooltip=[alt.Tooltip("group:N", title=by), alt.Tooltip("bookings:Q", title="Reservations"),
+                     alt.Tooltip("flagged:Q", title="Likely to cancel"),
+                     alt.Tooltip("revenue:Q", title=f"Revenue at risk ({code})", format=",.0f")])
+        labels = bars.mark_text(align="left", dx=4, color=INK, fontSize=12.5, fontWeight=600).encode(
+            text=alt.Text("share_flagged:Q", format=".0%"))
+        show_chart(base_chart((bars + labels).properties(height=max(150, 36 * len(b)))))
+        st.caption("Each bar shows the share of that group likely to cancel. Small groups can swing a lot.")
 
-with right.container(key="card_ins_bands", height="stretch"):
-    st.html('<div class="hs-card-title">How the risk is spread</div>')
+with right:
     bd = insights.bands(sel)
-    bd = bd.assign(revenue_display=to_display(bd["revenue"]))
-    show_chart(base_chart(alt.Chart(bd).mark_bar(cornerRadiusEnd=3, height={"band": 0.6}).encode(
-        y=alt.Y("band:N", sort=insights.BAND_LABELS, title=None),
-        x=alt.X("bookings:Q", title="Reservations"),
-        color=alt.Color("band:N", scale=alt.Scale(domain=insights.BAND_LABELS, range=BAND_COLOURS), legend=None),
-        tooltip=[alt.Tooltip("band:N", title="Band"), alt.Tooltip("bookings:Q", title="Reservations"),
-                 alt.Tooltip("revenue_display:Q", title=f"Booked revenue ({code})", format=",.0f")])
-        .properties(height=150)))
-    show_chart(base_chart(alt.Chart(sel[["probability"]]).mark_bar(cornerRadiusTopLeft=2, cornerRadiusTopRight=2).encode(
-        x=alt.X("probability:Q", bin=alt.Bin(extent=[0, 1], step=0.05), title="Cancellation probability",
-                axis=alt.Axis(format="%", values=[0, .25, .5, .75, 1])),
-        y=alt.Y("count():Q", title="Reservations"),
-        color=alt.condition(alt.datum.probability >= .5, alt.value(CANCEL), alt.value(STAY)),
-        tooltip=[alt.Tooltip("count():Q", title="Reservations")]).properties(height=150)))
-    st.caption("Reservations from 50% are flagged as likely to cancel. Contact the very high band first.")
+    vh = bd[bd["band"] == insights.BAND_LABELS[-1]].iloc[0]
+    with chart_card("card_ins_bands", "How many guests need a call?",
+                    f"<b>{int(vh['bookings']):,} reservations</b> are very high risk ({money_short(vh['revenue'])} "
+                    "booked). Contact these first.", "risk"):
+        bd = bd.assign(revenue_display=to_display(bd["revenue"]))
+        bars = alt.Chart(bd).mark_bar(cornerRadiusEnd=3, height={"band": 0.6}).encode(
+            y=alt.Y("band:N", sort=insights.BAND_LABELS, title=None),
+            x=alt.X("bookings:Q", title="Reservations"),
+            color=alt.Color("band:N", scale=alt.Scale(domain=insights.BAND_LABELS, range=BAND_COLOURS), legend=None),
+            tooltip=[alt.Tooltip("band:N", title="Risk"), alt.Tooltip("bookings:Q", title="Reservations"),
+                     alt.Tooltip("revenue_display:Q", title=f"Booked revenue ({code})", format=",.0f")])
+        labels = alt.Chart(bd).mark_text(align="left", dx=4, color=INK, fontSize=12.5, fontWeight=600).encode(
+            y=alt.Y("band:N", sort=insights.BAND_LABELS), x="bookings:Q", text=alt.Text("bookings:Q", format=","))
+        show_chart(base_chart((bars + labels).properties(height=170)))
+        st.caption("Risk bands by cancellation probability. From 50% a reservation counts as likely to cancel.")
+        nav_link("views/actions.py", "Open the action list", ":material/checklist:")
 
 # ------------------------------------------------------------------ reasons and actions
-section("Main reasons and suggested actions", "Among the reservations flagged as likely to cancel")
 r = insights.reasons(sel)
 if r.empty:
-    st.caption("No reservation in this selection is flagged as likely to cancel.")
+    with chart_card("card_ins_reasons", "Why are they at risk, and what should we do?"):
+        st.caption("No reservation in this selection is flagged as likely to cancel.")
 else:
-    rv, rcfg = money_view(r.rename(columns={"reason": "Main reason", "bookings": "Reservations",
-                                            "share_of_flagged": "Share of flagged",
-                                            "revenue_flagged": "Revenue flagged (EUR)", "action": "Suggested action"})
-                          .assign(**{"Share of flagged": r["share_of_flagged"] * 100}), ["Revenue flagged (EUR)"])
-    st.dataframe(rv, hide_index=True, width="stretch",
-                 column_config={**rcfg, "Share of flagged": st.column_config.ProgressColumn(
-                     format="%.0f%%", min_value=0, max_value=100),
-                     "Suggested action": st.column_config.TextColumn(width="large")})
-    st.caption("The main reason is the input that raised the risk most (SHAP). It shows an association learned from "
-               "past bookings, not a proven cause, so the suggested actions are for the hotel to judge.")
-nav_link("views/actions.py", "Open the action list for individual reservations", ":material/checklist:")
+    top_r = r.iloc[0]
+    with chart_card("card_ins_reasons", "Why are they at risk, and what should we do?",
+                    f"The most common reason is <b>{top_r['reason']}</b> ({top_r['share_of_flagged']:.0%} of flagged "
+                    f"reservations). Suggested: {top_r['action']}"):
+        rv = pd.DataFrame({"Main reason": r["reason"], "Suggested action": r["action"], "Reservations": r["bookings"],
+                           "Share of flagged": r["share_of_flagged"] * 100})
+        st.dataframe(rv, hide_index=True, width="stretch",
+                     column_config={"Share of flagged": st.column_config.ProgressColumn(
+                         format="%.0f%%", min_value=0, max_value=100, width="small"),
+                         "Main reason": st.column_config.TextColumn(width="medium"),
+                         "Suggested action": st.column_config.TextColumn(width="large"),
+                         "Reservations": st.column_config.NumberColumn(width="small")})
+        st.caption("The main reason is the detail that raised each reservation's risk most. It is a pattern from past "
+                   "bookings, not a proven cause, so the actions are suggestions.")

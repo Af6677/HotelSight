@@ -14,7 +14,7 @@ bookings. It is **not** a validated live forecasting system and has **not** been
 |---|---|---|
 | | **Overview** | Hotel condition at a glance (booking history dataset or current predicted bookings), reservations that need attention, highlights |
 | Predict | **Check a reservation** | Score one booking, see the reasons (SHAP), a suggested action and a what-if test |
-| | **Upload reservations** | Score a whole Excel/CSV file and download the results |
+| | **Upload reservations** | Score a whole Excel/CSV file and download the results (with a 200-booking test sample and a demo of upcoming arrivals) |
 | Analyse | **Risk outlook** | Weekly and monthly risk of the saved predictions, where it comes from, risk bands, reasons and actions |
 | | **Action list** | Which guests to contact first and what to suggest, with Excel/CSV export |
 | | **Hotel performance** | Room revenue, ADR, rooms sold, pickup, cancellations, channels and findings, from the booking history dataset or the current predicted bookings, plus the model's value on past bookings |
@@ -85,7 +85,7 @@ dashboard with `Ctrl+C` in the terminal. Run the tests with:
 | `experiment/` | **Frozen controlled experiment, unchanged**: data, split membership, 4 preprocessors, selected models, 48 trial records, sealed test results, bootstrap, its own README and reproduction scripts, and the audit of earlier runs |
 | `assets/` | Derived dashboard assets: country names, training input ranges, example bookings, global SHAP. Rebuild with `scripts/build_assets.py` |
 | `scripts/` | `verify_experiment.py`, `check_date_conventions.py`, `build_assets.py`, `launch_check.py` |
-| `tests/` | 79 automated tests (pytest) |
+| `tests/` | 81 automated tests (pytest) |
 | `docs/` | `THESIS_AMENDMENTS.md/.docx` (Chapter 3 and 4 changes), `TEST_REPORT.md`, `verification_report.json`, `date_conventions.json`, `screenshots/` |
 | `archive/` | Earlier exploratory runs (superseded, **not used by the dashboard**) |
 | `requirements.txt` / `requirements-top.txt` | Exact versions, full set and top-level packages |

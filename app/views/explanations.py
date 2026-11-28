@@ -6,8 +6,7 @@ import altair as alt
 import streamlit as st
 
 from common import (INK, STAY, base_chart, diverging_bars, diverging_legend, friendly, get_countries, kpis, load, nav_link,
-                    page_header,
-                    show_chart)
+                    page_header, show_chart, takeaway)
 from hotelsight.contract import CATEGORY_LABELS
 
 summ = load("shap_summary")
@@ -23,27 +22,30 @@ df["Input"] = df["input"].map(friendly)
 df["label"] = df["Mean |SHAP|"].map(lambda v: f"{v:.2f}")
 order = list(df["Input"])
 
+top3 = [n.split(" (")[0].lower() for n in df["Input"].head(3)]
+takeaway(f"In short: when it judges a reservation, the model looks most at <b>{top3[0]}</b>, <b>{top3[1]}</b> and "
+         f"<b>{top3[2]}</b>. Pick a detail on the right to see which values raise or lower the risk.")
 c = kpis("drivers", ["looks_one", "looks_two", "looks_3"])
 for i, (_, r) in enumerate(df.head(3).iterrows()):
-    c[i].metric(f"#{i + 1} driver", r["Input"].split(" (")[0], f"{r['Mean |SHAP|']:.2f} log-odds on average", delta_color="off",
-                delta_arrow="off", border=True)
+    c[i].metric(f"#{i + 1} most important", r["Input"].split(" (")[0], f"influence {r['Mean |SHAP|']:.2f}",
+                delta_color="off", delta_arrow="off", border=True)
 
 left, right = st.columns([1, 1], gap="medium")
 with left.container(key="card_global", height="stretch"):
-    st.html('<div class="hs-card-title">Average influence of each input</div>')
+    st.html('<div class="hs-card-title">Which details matter most?</div>')
     bars = alt.Chart(df).mark_bar(cornerRadiusEnd=4, color=STAY, height={"band": 0.66}).encode(
         y=alt.Y("Input:N", sort=order, title=None),
-        x=alt.X("Mean |SHAP|:Q", title="Average absolute contribution (log-odds)",
+        x=alt.X("Mean |SHAP|:Q", title="Average influence on the risk score",
                 scale=alt.Scale(domain=[0, 1.15 * float(df["Mean |SHAP|"].max())], nice=False)),   # room for labels
         tooltip=["Input", alt.Tooltip("Mean |SHAP|:Q", format=".3f")])
     text = alt.Chart(df).mark_text(align="left", dx=5, color=INK, fontSize=12).encode(
         y=alt.Y("Input:N", sort=order), x="Mean |SHAP|:Q", text="label:N")
     show_chart(base_chart((bars + text).properties(height=alt.Step(26))))
-    st.caption("Longer bar = the input moves predictions more, on average, in either direction. It does not say whether "
-               "it raises or lowers risk; use the explorer for that.")
+    st.caption("A longer bar means the detail changes the risk score more, up or down. Measured with SHAP "
+               "(average absolute contribution, in log-odds).")
 
 with right.container(key="card_byvalue", height="stretch"):
-    st.html('<div class="hs-card-title">How each input\'s values push the score</div>')
+    st.html('<div class="hs-card-title">Which values raise or lower the risk?</div>')
     by = load("global_shap_by_value")
     choice = st.selectbox("Input", list(df["input"]), format_func=friendly)
     sub = by[by["input"] == choice].sort_values("order").copy()

@@ -3,7 +3,7 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
-from common import (FADED, INK, SECOND, SEQ, STAY, base_chart, icon, kpis, load, pct, section, show_chart)
+from common import (FADED, INK, SECOND, SEQ, STAY, base_chart, icon, kpis, load, pct, section, show_chart, takeaway)
 
 
 def confusion(cm):
@@ -130,6 +130,11 @@ def render_test():
                "two ways, because repeated identical records in the dataset cannot be verified (no booking ID). The "
                "one-copy result is the more cautious estimate.")
     rep, one = t["repeated"], t["one_copy"]
+    tn, fp = one["confusion_matrix"][0]
+    fn, tp = one["confusion_matrix"][1]
+    takeaway(f"In short: on <b>{one['rows']:,}</b> bookings it had never seen, the model was right <b>{one['accuracy']:.0%}"
+             f"</b> of the time and caught <b>{tp:,} of {tp + fn:,}</b> real cancellations "
+             f"(<b>{tp / (tp + fn):.0%}</b>), with <b>{fp:,}</b> false alarms.", "good")
     c = kpis("perf", ["target", "check_circle", "target", "check_circle"], {2: "slate", 3: "slate"})
     off = {"delta_color": "off", "delta_arrow": "off", "border": True}
     c[0].metric("F1-score", pct(one["f1"], 2), "one copy per record", help="One copy per complete record", **off)

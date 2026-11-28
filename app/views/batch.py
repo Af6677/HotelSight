@@ -38,6 +38,11 @@ def sample(n: int = 200) -> pd.DataFrame:
     return batch.sample_test_bookings(n)
 
 
+@st.cache_data
+def demo(day: str, n: int = 200) -> pd.DataFrame:              # cached per day, so the dates move with today
+    return batch.sample_upcoming_bookings(n, today=pd.Timestamp(day).date())
+
+
 # ------------------------------------------------------------------ the file
 c1, c2 = st.columns([1.7, 1], gap="medium")
 with c1.container(key="card_upload", height="stretch"):
@@ -51,8 +56,12 @@ with c2.container(key="card_start", height="stretch"):
     st.download_button("Download Excel template", template_bytes(), file_name="HotelSight_reservation_template.xlsx",
                        mime=XLSX, icon=":material/download:", key="dl_template", width="stretch")
     if st.button("Try 200 sample reservations", key="use_sample", icon=":material/dataset:", width="stretch"):
-        ss.batch_use_sample = True
-    st.caption("The sample comes from the held-out test set and includes real outcomes, so you can compare them.")
+        ss.batch_use_sample = "test"
+    if st.button("Demo: 200 upcoming arrivals", key="use_demo", icon=":material/event_upcoming:", width="stretch"):
+        ss.batch_use_sample = "demo"
+    st.caption("The sample comes from the held-out test set and includes real outcomes, so you can compare them. "
+               "The demo uses the same kind of bookings moved to arrive in the next 8 weeks, with no outcome yet, "
+               "to show how the hotel would use the risk outlook and action list.")
 with st.expander("Column guide", icon=":material/view_column:"):
     st.dataframe(guide(), hide_index=True, width="stretch")
 
@@ -66,6 +75,9 @@ if up is not None:
                "df": batch.read_table(data, up.name, sheet)}
     except Exception as e:                                       # unreadable file: say so, don't crash
         st.error(f"Could not read this file: {e}")
+elif ss.get("batch_use_sample") == "demo":
+    today = pd.Timestamp.today().strftime("%Y-%m-%d")
+    src = {"name": "Demo – 200 upcoming arrivals (no real outcomes)", "key": "demo" + today, "df": demo(today)}
 elif ss.get("batch_use_sample"):
     src = {"name": "Sample – 200 held-out test reservations", "key": "sample", "df": sample()}
 

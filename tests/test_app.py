@@ -71,7 +71,7 @@ def test_overview_puts_the_soonest_upcoming_arrival_first(tmp_path, monkeypatch)
                  "batch", "Upload", 0.5, "abc")
     at = AppTest.from_file(str(APP / "views/home.py"), default_timeout=180).run()
     assert not at.exception
-    assert next(m for m in at.metric if m.label == "Arrivals").value == "2"
+    assert next(m for m in at.metric if m.label == "Guests to contact").value == "2"      # the two upcoming ones
     assert list(at.dataframe[0].value["Reference"]) == ["SOON", "LATER"]
 
 
@@ -99,3 +99,16 @@ def test_predict_rejects_invalid_booking():
     at.button[0].click().run()
     assert any("at least one guest" in e.value for e in at.error)
     assert not at.metric                                   # no prediction shown
+
+
+def test_demo_upcoming_arrivals_fill_the_overview(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOTELSIGHT_HISTORY_DB", str(tmp_path / "h.db"))
+    at = AppTest.from_file(str(APP / "views/batch.py"), default_timeout=300).run()
+    at.button(key="use_demo").click().run()
+    at.button(key="run_batch").click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    home = AppTest.from_file(str(APP / "views/home.py"), default_timeout=180).run()
+    assert not home.exception
+    assert any(c.value.startswith("Arrivals from today") for c in home.caption)
+    assert next(m for m in home.metric if m.label == "Revenue flagged").delta.endswith("upcoming arrivals")
+    assert any("200 saved predictions" in h.value for h in home.get("html") if hasattr(h, "value"))

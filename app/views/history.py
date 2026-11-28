@@ -10,8 +10,8 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
-from common import (CANCEL, INK, base_chart, convert_euro_text, dash, friendly, get_countries, kpis, money_view,
-                    page_header, pct, saved_predictions, section, show_chart, verdict_colours)
+from common import (data_stamp, CANCEL, INK, base_chart, chart_card, convert_euro_text, dash, friendly, get_countries, kpis, money_view,
+                    page_header, pct, saved_predictions, section, show_chart, takeaway, verdict_colours)
 from hotelsight import batch, history, insights
 from hotelsight.contract import MODEL_FIELDS, display_value
 
@@ -42,6 +42,7 @@ def clear_all():
 page_header("Records", "Prediction history",
             "Every saved check and upload, newest first, and how accurate the predictions were once the real outcome "
             "was known.")
+data_stamp()
 if ss.get("hist_notice"):
     st.success(ss.pop("hist_notice"), icon=":material/check_circle:")
 
@@ -162,24 +163,29 @@ with tab_accuracy:
                 "outcome (for example the 200 sample reservations), or check again after the guests' arrival dates.",
                 icon=":material/fact_check:")
     else:
-        st.caption("Only saved predictions whose real outcome is known. A reservation saved more than once counts each "
-                   "time, so this is a working check. The sealed experiment results are on the Model evaluation page.")
+        takeaway(f"For the <b>{check['known']:,}</b> saved reservations whose real outcome is known, HotelSight was "
+                 f"right <b>{check['accuracy']:.0%}</b> of the time. It raised <b>{check['fp']:,}</b> false alarms and "
+                 f"missed <b>{check['fn']:,}</b> cancellations.", "good" if check["accuracy"] >= .75 else "risk")
+        st.caption("A reservation saved more than once counts each time, so this is a working check. The official "
+                   "test results are on the Model evaluation page.")
         k = kpis("hist_acc", ["fact_check", "verified", "balance", "notifications_off", "search_off"],
                  {3: "coral", 4: "coral"})
         k[0].metric("With a known outcome", f"{check['known']:,}", "saved predictions", **off)
         k[1].metric("Accuracy", pct(check["accuracy"]), f"{check['tp'] + check['tn']:,} correct", **off)
-        k[2].metric("F1-score", f"{check['f1']:.3f}", "cancelled class", **off)
+        k[2].metric("F1-score", f"{check['f1']:.3f}", "balance of caught and false alarms", **off)
         k[3].metric("False alarms", f"{check['fp']:,}", "flagged but the guest stayed", **off)
         k[4].metric("Missed cancellations", f"{check['fn']:,}", "not flagged but cancelled", **off)
 
         left, right = st.columns(2, gap="medium")
-        with left.container(key="card_acc_month", height="stretch"):
-            st.html('<div class="hs-card-title">Predicted and actual cancellations by arrival month</div>')
-            k2 = known.dropna(subset=["arrival"])
-            km = (k2.assign(month=k2["arrival"].dt.to_period("M").dt.to_timestamp()).groupby("month")
-                  .agg(n=("actual", "size"), predicted=("flagged", "mean"), actual=("actual", "mean"),
-                       correct=("flagged", lambda s: float((s == k2.loc[s.index, "actual"]).mean())))
-                  .reset_index())
+        k2 = known.dropna(subset=["arrival"])
+        km = (k2.assign(month=k2["arrival"].dt.to_period("M").dt.to_timestamp()).groupby("month")
+              .agg(n=("actual", "size"), predicted=("flagged", "mean"), actual=("actual", "mean")).reset_index())
+        gap = float((km["predicted"] - km["actual"]).abs().mean()) if len(km) else 0.0
+        with left, chart_card("card_acc_month", "Is the model still on track?",
+                              f"Predicted and real cancellations are on average <b>{gap * 100:.0f} points</b> apart "
+                              "per month. " + ("That is close, so no retraining is needed yet." if gap < .15 else
+                                               "That is a wide gap, so the model should be retrained."),
+                              "good" if gap < .15 else "risk"):
             long = pd.concat([km.assign(Series="Predicted to cancel", share=km["predicted"]),
                               km.assign(Series="Actually cancelled", share=km["actual"])])
             show_chart(base_chart(alt.Chart(long).mark_line(point=True, strokeWidth=2).encode(
@@ -189,26 +195,32 @@ with tab_accuracy:
                 color=alt.Color("Series:N", scale=alt.Scale(domain=["Predicted to cancel", "Actually cancelled"],
                                                             range=[CANCEL, INK]),
                                 legend=alt.Legend(orient="top", title=None)),
+                strokeDash=alt.StrokeDash("Series:N", scale=alt.Scale(
+                    domain=["Predicted to cancel", "Actually cancelled"], range=[[1, 0], [5, 3]]), legend=None),
                 tooltip=[alt.Tooltip("month:T", title="Arrival month", format="%B %Y"), "Series:N",
                          alt.Tooltip("share:Q", title="Share", format=".1%"),
                          alt.Tooltip("n:Q", title="Reservations")]).properties(height=240)))
-            st.caption("When the two lines drift apart for several months, the model should be retrained.")
-        with right.container(key="card_acc_band", height="stretch"):
-            st.html('<div class="hs-card-title">Actual cancellation rate in each risk band</div>')
-            kb = known.groupby("risk_band", observed=False).agg(n=("actual", "size"), rate=("actual", "mean"))
-            kb = kb.reindex(insights.BAND_LABELS).reset_index().rename(columns={"risk_band": "band", "index": "band"})
-            kb = kb.dropna(subset=["rate"])
+            st.caption("Solid line: predicted. Dashed line: what really happened.")
+        kb = known.groupby("risk_band", observed=False).agg(n=("actual", "size"), rate=("actual", "mean"))
+        kb = kb.reindex(insights.BAND_LABELS).reset_index().rename(columns={"risk_band": "band", "index": "band"})
+        kb = kb.dropna(subset=["rate"])
+        band_answer = None
+        if len(kb) >= 2:
+            band_answer = (f"Of the <b>{kb.iloc[-1]['band'].split(' (')[0].lower()}</b> reservations, "
+                           f"<b>{kb.iloc[-1]['rate']:.0%}</b> really cancelled, against <b>{kb.iloc[0]['rate']:.0%}</b> "
+                           f"of the <b>{kb.iloc[0]['band'].split(' (')[0].lower()}</b> ones. Higher risk really means "
+                           "more cancellations.")
+        with right, chart_card("card_acc_band", "Do the risk bands mean what they say?", band_answer, "good"):
             bars = alt.Chart(kb).mark_bar(color=CANCEL, cornerRadiusEnd=3, height={"band": .6}).encode(
                 y=alt.Y("band:N", sort=insights.BAND_LABELS, title=None),
                 x=alt.X("rate:Q", title="Actually cancelled", axis=alt.Axis(format="%"), scale=alt.Scale(domain=[0, 1])),
                 tooltip=[alt.Tooltip("band:N", title="Risk band"), alt.Tooltip("n:Q", title="Reservations"),
                          alt.Tooltip("rate:Q", title="Actually cancelled", format=".1%")])
-            text = bars.mark_text(align="left", dx=4, color=INK, fontSize=12).encode(text=alt.Text("rate:Q", format=".0%"))
+            text = bars.mark_text(align="left", dx=4, color=INK, fontSize=12.5, fontWeight=600).encode(
+                text=alt.Text("rate:Q", format=".0%"))
             show_chart(base_chart((bars + text).properties(height=180)))
-            st.caption("A reliable model shows more real cancellations in each higher band.")
 
-        with st.container(key="card_acc_errors"):
-            st.html('<div class="hs-card-title">Where the errors happen</div>')
+        with st.expander("More detail: where the errors happen", icon=":material/expand_more:"):
             err = known.assign(kind=lambda x: (x["flagged"] == 1).map({True: "False alarm", False: "Missed"})
                                .where(x["flagged"] != x["actual"], "Correct"))
             by = (err.groupby("market_segment")["kind"].value_counts().unstack(fill_value=0)
